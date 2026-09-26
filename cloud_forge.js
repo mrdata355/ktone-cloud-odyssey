@@ -126,14 +126,83 @@ function terminalRun(pr,cmd){
  return out;
 }
 function render(){
- let root=$("#view-cloud-forge");if(!root)return,pr=p(),ps=projects[st.provider],sc=score();
- root.innerHTML='<div class="view-heading"><div><span class="micro">MULTI-CLOUD PRODUCTION CAMPAIGNS</span><h2>AWS + GCP Project Forge</h2><p>Twenty-four end-to-end cloud projects. Simulation builds architecture and operational reasoning now; real-cloud evidence later upgrades the same project with actual CLI/job/deployment proof.</p></div><span class="enterprise-badge">24 PROJECTS • 288 STAGES</span></div>'+
- '<div class="cloud-forge-shell"><aside class="cloud-track glass"><div class="cloud-track-head"><span class="micro">CLOUD CAMPAIGN</span><h3>Choose provider</h3><p>AWS readiness '+totalScore("aws")+'% • GCP readiness '+totalScore("gcp")+'%</p></div><div class="cloud-provider-tabs"><button class="cloud-provider-tab '+(st.provider==="aws"?"active":"")+'" data-provider="aws">AWS</button><button class="cloud-provider-tab '+(st.provider==="gcp"?"active":"")+'" data-provider="gcp">GCP</button></div><div class="cloud-project-list">'+ps.map((x,i)=>{let cnt=commonStages.filter((_,s)=>st.checks[st.provider+"-"+x.id+"-"+s]).length;return '<button class="cloud-project-btn '+(i===st.project?"active ":"")+(cnt===12?"complete":"")+'" data-project="'+i+'"><span class="ico">'+x.icon+'</span><div><b>'+esc(x.title)+'</b><span>'+esc(x.services.slice(0,3).join(" • "))+'</span></div><em>'+cnt+'/12</em></button>';}).join("")+'</div></aside>'+
- '<section class="cloud-project-main glass"><div class="cloud-project-head"><span class="micro">'+st.provider.toUpperCase()+' • PROJECT '+String(st.project+1).padStart(2,"0")+'</span><h2>'+pr.icon+' '+esc(pr.title)+'</h2><p>'+esc(pr.scenario)+'</p><div class="cloud-service-chips">'+pr.services.map(s=>'<span class="cloud-service-chip">'+esc(s)+'</span>').join("")+'</div></div><div class="architecture-canvas"><span class="micro">REFERENCE ARCHITECTURE</span>'+architecture(pr)+'<div class="pattern-proof"><div class="proof-card good"><b>WHY THIS ARCHITECTURE</b><p>'+esc(pr.why)+'</p></div><div class="proof-card warn"><b>WHY NOT THE ALTERNATIVE</b><p>'+esc(pr.alt)+'</p></div></div></div>'+
- '<div class="cloud-stage-grid">'+commonStages.map((s,i)=>'<label class="cloud-stage"><input type="checkbox" data-cloud-stage="'+i+'" '+(st.checks[checkKey(i)]?"checked":"")+'><div><b>'+String(i+1).padStart(2,"0")+'. '+s[0]+'</b><p>'+s[1]+'</p></div><em>+'+Math.round(85/12)+'%</em><div class="why"><b>Project application:</b> '+stageWhy(pr,i)+'</div></label>').join("")+'</div>'+
- '<div class="cloud-terminal"><div class="cloud-terminal-head"><span>'+st.provider.toUpperCase()+' CLI / TERRAFORM SIMULATOR</span><button id="cloudRun">▶ Run command</button></div><textarea id="cloudCommand">'+esc(pr.commands[0])+'</textarea><pre id="cloudOut">$ simulation ready — no real cloud resources will be changed</pre></div></section>'+
- '<aside class="cloud-proof glass"><div class="proof-head"><span class="micro">PROJECT EVIDENCE</span><h3>Production readiness</h3><div class="proof-score">'+sc+'%</div><span>'+done()+'/12 simulated stages • '+((st.evidence[st.provider+"-"+pr.id]||"").trim().length>30?"real evidence logged":"real evidence missing")+'</span></div><div class="proof-checks">'+proofChecks(pr).map(x=>'<div class="proof-check '+(x[1]?"pass":"")+'"><i></i><div><b>'+x[0]+'</b><span>'+x[3]+'</span></div><em>'+x[2]+'</em></div>').join("")+'</div><div class="cloud-files"><span class="micro">REQUIRED REPOSITORY FILES</span><h4>Name files by purpose</h4>'+pr.files.map(f=>'<div class="cloud-file"><code>'+esc(f[0])+'</code><p>'+esc(f[1])+'</p></div>').join("")+'</div><div class="real-proof"><span class="micro">REAL-CLOUD EVIDENCE</span><p style="font-size:7px;color:#8094ad">Paste sanitized evidence from an AWS/GCP sandbox: deployment/job ID, test output, query/job profile, alarm evidence, or architecture review. Never paste secrets or credentials.</p><textarea id="realEvidence" placeholder="Example: deployment/job ID + what it proves...">'+esc(st.evidence[st.provider+"-"+pr.id]||"")+'</textarea><button id="saveEvidence">Save evidence note</button></div></aside></div>'+
- '<div class="cloud-map-grid">'+ps.map((x,i)=>'<article class="cloud-map-card"><b>'+x.icon+' '+esc(x.title)+'</b><span>'+x.services.join(" • ")+'</span><p>'+esc(x.why)+'</p></article>').join("")+'</div>';
+ var root=$("#view-cloud-forge"); if(!root)return;
+ var pr=p(), ps=projects[st.provider], sc=score();
+ var projectButtons=ps.map(function(x,i){
+   var cnt=commonStages.filter(function(_,s){return st.checks[st.provider+"-"+x.id+"-"+s];}).length;
+   return `<button class="cloud-project-btn ${i===st.project?"active ":""}${cnt===12?"complete":""}" data-project="${i}">
+     <span class="ico">${x.icon}</span>
+     <div><b>${esc(x.title)}</b><span>${esc(x.services.slice(0,3).join(" • "))}</span></div>
+     <em>${cnt}/12</em>
+   </button>`;
+ }).join("");
+ var serviceChips=pr.services.map(function(s){return `<span class="cloud-service-chip">${esc(s)}</span>`;}).join("");
+ var stageCards=commonStages.map(function(stage,i){
+   return `<label class="cloud-stage">
+     <input type="checkbox" data-cloud-stage="${i}" ${st.checks[checkKey(i)]?"checked":""}>
+     <div><b>${String(i+1).padStart(2,"0")}. ${stage[0]}</b><p>${stage[1]}</p></div>
+     <em>+${Math.round(85/12)}%</em>
+     <div class="why"><b>Project application:</b> ${stageWhy(pr,i)}</div>
+   </label>`;
+ }).join("");
+ var proofHTML=proofChecks(pr).map(function(x){
+   return `<div class="proof-check ${x[1]?"pass":""}"><i></i><div><b>${x[0]}</b><span>${x[3]}</span></div><em>${x[2]}</em></div>`;
+ }).join("");
+ var fileHTML=pr.files.map(function(file){
+   return `<div class="cloud-file"><code>${esc(file[0])}</code><p>${esc(file[1])}</p></div>`;
+ }).join("");
+ var mapHTML=ps.map(function(x){
+   return `<article class="cloud-map-card"><b>${x.icon} ${esc(x.title)}</b><span>${esc(x.services.join(" • "))}</span><p>${esc(x.why)}</p></article>`;
+ }).join("");
+ var evidence=(st.evidence[st.provider+"-"+pr.id]||"");
+ root.innerHTML=`
+ <div class="view-heading">
+   <div><span class="micro">MULTI-CLOUD PRODUCTION CAMPAIGNS</span><h2>AWS + GCP Project Forge</h2>
+   <p>Twenty-four end-to-end cloud projects. Simulation builds architecture and operational reasoning now; real-cloud evidence later upgrades the same project with actual CLI/job/deployment proof.</p></div>
+   <span class="enterprise-badge">24 PROJECTS • 288 STAGES</span>
+ </div>
+ <div class="cloud-forge-shell">
+   <aside class="cloud-track glass">
+     <div class="cloud-track-head"><span class="micro">CLOUD CAMPAIGN</span><h3>Choose provider</h3><p>AWS readiness ${totalScore("aws")}% • GCP readiness ${totalScore("gcp")}%</p></div>
+     <div class="cloud-provider-tabs">
+       <button class="cloud-provider-tab ${st.provider==="aws"?"active":""}" data-provider="aws">AWS</button>
+       <button class="cloud-provider-tab ${st.provider==="gcp"?"active":""}" data-provider="gcp">GCP</button>
+     </div>
+     <div class="cloud-project-list">${projectButtons}</div>
+   </aside>
+   <section class="cloud-project-main glass">
+     <div class="cloud-project-head">
+       <span class="micro">${st.provider.toUpperCase()} • PROJECT ${String(st.project+1).padStart(2,"0")}</span>
+       <h2>${pr.icon} ${esc(pr.title)}</h2><p>${esc(pr.scenario)}</p>
+       <div class="cloud-service-chips">${serviceChips}</div>
+     </div>
+     <div class="architecture-canvas"><span class="micro">REFERENCE ARCHITECTURE</span>${architecture(pr)}
+       <div class="pattern-proof">
+         <div class="proof-card good"><b>WHY THIS ARCHITECTURE</b><p>${esc(pr.why)}</p></div>
+         <div class="proof-card warn"><b>WHY NOT THE ALTERNATIVE</b><p>${esc(pr.alt)}</p></div>
+       </div>
+     </div>
+     <div class="cloud-stage-grid">${stageCards}</div>
+     <div class="cloud-terminal">
+       <div class="cloud-terminal-head"><span>${st.provider.toUpperCase()} CLI / TERRAFORM SIMULATOR</span><button id="cloudRun">▶ Run command</button></div>
+       <textarea id="cloudCommand">${esc(pr.commands[0])}</textarea>
+       <pre id="cloudOut">$ simulation ready — no real cloud resources will be changed</pre>
+     </div>
+   </section>
+   <aside class="cloud-proof glass">
+     <div class="proof-head"><span class="micro">PROJECT EVIDENCE</span><h3>Production readiness</h3><div class="proof-score">${sc}%</div>
+       <span>${done()}/12 simulated stages • ${evidence.trim().length>30?"real evidence logged":"real evidence missing"}</span>
+     </div>
+     <div class="proof-checks">${proofHTML}</div>
+     <div class="cloud-files"><span class="micro">REQUIRED REPOSITORY FILES</span><h4>Name files by purpose</h4>${fileHTML}</div>
+     <div class="real-proof"><span class="micro">REAL-CLOUD EVIDENCE</span>
+       <p style="font-size:7px;color:#8094ad">Paste sanitized evidence from an AWS/GCP sandbox: deployment/job ID, test output, query/job profile, alarm evidence, or architecture review. Never paste secrets or credentials.</p>
+       <textarea id="realEvidence" placeholder="Example: deployment/job ID + what it proves...">${esc(evidence)}</textarea>
+       <button id="saveEvidence">Save evidence note</button>
+     </div>
+   </aside>
+ </div>
+ <div class="cloud-map-grid">${mapHTML}</div>`;
  wire(pr);
 }
 function stageWhy(pr,i){
