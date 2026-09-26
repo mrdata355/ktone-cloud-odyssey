@@ -344,5 +344,21 @@ function init(){
   if(state.active)loadLab(state.active.w,state.active.m);
   setByte(doneCount()?'You have '+doneCount()+' mastered missions. Keep converting practice into production evidence.':'Your first objective is to prove a production-safe path from source event to business outcome.');
 }
+window.CloudOdyssey={
+  getState:function(){return state;},
+  worlds:worlds,
+  save:save,
+  toast:toast,
+  openMission:openMission,
+  setView:setView,
+  doneCount:doneCount,
+  worldDone:worldDone,
+  missionId:missionId,
+  renderHUD:renderHUD,
+  renderCommand:renderCommand,
+  renderProjects:renderProjects,
+  renderSkills:renderSkills,
+  renderRelics:renderRelics
+};
 init();
 })();
