@@ -81,11 +81,11 @@ var actions=[
 ["Adaptive Ladder","Grade this stage","local","Scores current answer using local pattern/WHY checks.","Local heuristic grading.","warn"],
 ["Adaptive Ladder","Show reference only after attempt","local","Shows stored solution once an attempt exists.","Local only.","good"],
 ["Adaptive Ladder","Next stage / Next pattern","local","Moves through ladder or challenge.","Local only.","good"],
-["AWS + GCP Forge","AWS / GCP provider tabs","local","Switches provider curriculum.","Local UI only.","good"],
-["AWS + GCP Forge","24 project buttons","local","Switches the selected cloud project.","Local UI only.","good"],
-["AWS + GCP Forge","288 stage checkboxes","local","Tracks completion of 12 stages × 24 projects.","LocalStorage only; does not validate actual cloud resources.","warn"],
-["AWS + GCP Forge","▶ Run command","sim","Parses command text and returns simulated CLI/Terraform output.","SIMULATION ONLY. It does NOT call AWS, GCP, Terraform Cloud, or a shell.","bad"],
-["AWS + GCP Forge","Save evidence note","local","Stores your pasted sanitized evidence note.","LocalStorage only; no server upload.","warn"],
+["Cloud + Lakehouse Forge","AWS / GCP provider tabs","local","Switches provider curriculum.","Local UI only.","good"],
+["Cloud + Lakehouse Forge","24 project buttons","local","Switches the selected cloud project.","Local UI only.","good"],
+["Cloud + Lakehouse Forge","288 stage checkboxes","local","Tracks completion of 12 stages × 24 projects.","LocalStorage only; does not validate actual cloud resources.","warn"],
+["Cloud + Lakehouse Forge","▶ Run command","sim","Parses command text and returns simulated CLI/Terraform output.","SIMULATION ONLY. It does NOT call AWS, GCP, Terraform Cloud, or a shell.","bad"],
+["Cloud + Lakehouse Forge","Save evidence note","local","Stores your pasted sanitized evidence note.","LocalStorage only; no server upload.","warn"],
 ["Action Map","Run safe tab test","local","Programmatically clicks every nav tab, verifies its target view activates, then returns to Action Map.","Browser-only QA; no destructive buttons clicked.","good"],
 ["Action Map","Scan visible buttons","local","Checks currently rendered buttons for a click handler and reports suspicious dead controls.","Browser-only QA.","good"]
 ];
@@ -125,7 +125,7 @@ function render(){
  root.innerHTML='<div class="view-heading"><div><span class="micro">BUTTON + BACKEND TRANSPARENCY</span><h2>What every control actually does</h2><p>This page separates navigation, local state, browser execution, simulation, device APIs and real external systems so no click looks more powerful than it really is.</p></div><div class="mission-filters"><button id="runTabAudit">Run safe tab test</button><button id="scanButtons">Scan visible buttons</button></div></div>'+
  '<div class="actionmap-shell"><aside class="actionmap-side glass"><div class="actionmap-side-head"><span class="micro">FILTER</span><h3>Action type</h3><p>“Backend” means an actual server/service outside this static app. Most Cloud Odyssey actions are intentionally local right now.</p></div><div class="actionmap-filter">'+
  [["all","All actions"],["nav","Navigation"],["local","Local state"],["browser","Browser execution"],["sim","Simulation"],["device","Device APIs"]].map(x=>'<button class="'+(filter===x[0]?"active":"")+'" data-action-filter="'+x[0]+'">'+x[1]+'</button>').join("")+
- '</div><div class="actionmap-filter"><button data-action-filter="AWS + GCP Forge">AWS + GCP only</button><button data-action-filter="Cloud Lab">Cloud Lab only</button><button data-action-filter="Enterprise Drill">Enterprise only</button></div></aside>'+
+ '</div><div class="actionmap-filter"><button data-action-filter="Cloud + Lakehouse Forge">AWS + GCP only</button><button data-action-filter="Cloud Lab">Cloud Lab only</button><button data-action-filter="Enterprise Drill">Enterprise only</button></div></aside>'+
  '<section class="actionmap-main glass"><div class="actionmap-summary">'+
  '<div class="actionmap-stat"><span>ACTION FAMILIES</span><b>'+c.total+'</b></div>'+
  '<div class="actionmap-stat"><span>NAVIGATION</span><b>'+c.nav+'</b></div>'+
