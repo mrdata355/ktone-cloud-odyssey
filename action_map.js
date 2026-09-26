@@ -110,9 +110,9 @@ function runTabTest(){
  return {pass:pass,total:nav.length,rows:rows};
 }
 function buttonScan(){
- var view=$(".view.active"),buttons=view?$ $("button",view):[];
+ var view=$(".view.active"),buttons=view?$("button",view):[];
  var rows=buttons.map(b=>({
-   label:(b.textContent||b.title||b.id||"(unnamed)").replace(/s+/g," ").trim().slice(0,80),
+   label:(b.textContent||b.title||b.id||"(unnamed)").replace(/\\s+/g," ").trim().slice(0,80),
    id:b.id||"",
    wired:typeof b.onclick==="function" || !!b.closest("[data-rich-action]")
  }));
@@ -138,7 +138,7 @@ function render(){
  $("#scanButtons").onclick=()=>{var r=buttonScan();$("#actionAuditResult").innerHTML='<div class="answer-panel"><h4>VISIBLE BUTTON SCAN • '+(r.total-r.dead.length)+'/'+r.total+' directly wired</h4><p>'+(r.dead.length?"Suspicious: "+r.dead.map(x=>esc(x.label)).join(", "):"No suspicious visible controls in this view.")+'</p></div>';};
 }
 function classifyButton(b){
- var id=b.id||"",txt=(b.textContent||"").replace(/s+/g," ").trim();
+ var id=b.id||"",txt=(b.textContent||"").replace(/\\s+/g," ").trim();
  if(b.dataset.view||b.dataset.jump||b.dataset.richAction||b.dataset.dockView)return ["NAVIGATION","Screen/module changed; no backend call."];
  if(/runPython|runSql/.test(id))return ["BROWSER EXECUTION","Python/SQLite executes locally in Pyodide."];
  if(/loadMonaco/.test(id))return ["BROWSER EXECUTION","Monaco loads from CDN into this browser."];
@@ -155,7 +155,7 @@ function inspector(){
  var el=D.createElement("div");el.id="odysseyActionInspector";D.body.appendChild(el);
  D.addEventListener("click",function(e){
    var b=e.target.closest&&e.target.closest("button");if(!b||b.closest("#odysseyActionInspector"))return;
-   var x=classifyButton(b),label=(b.textContent||b.title||b.id||"control").replace(/s+/g," ").trim().slice(0,70);
+   var x=classifyButton(b),label=(b.textContent||b.title||b.id||"control").replace(/\\s+/g," ").trim().slice(0,70);
    el.innerHTML='<span class="ai-type">'+esc(x[0])+'</span><div><b>'+esc(label)+'</b><br><span>'+esc(x[1])+'</span></div>';
    el.classList.add("show");clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),3200);
  },true);
