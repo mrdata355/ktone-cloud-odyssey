@@ -60,21 +60,28 @@ function aggregate(){
  return {score:score,dims:dim,domains:domains,blind:blind,passes:passes,days:Object.keys(dates).length};
 }
 function otherSignals(){
- var base=CO.getState(), speak={}, ext={}, comms={};
+ var base=CO.getState(), speak={}, ext={}, comms={}, forge={};
  try{speak=JSON.parse(localStorage.getItem("cloud_odyssey_speaking_v1")||"{}");}catch(e){}
  try{ext=JSON.parse(localStorage.getItem("cloud_odyssey_extensive_v1")||"{}");}catch(e){}
  try{comms=JSON.parse(localStorage.getItem("cloud_odyssey_comms_v1")||"{}");}catch(e){}
+ try{forge=JSON.parse(localStorage.getItem("cloud_odyssey_coding_forge_v1")||"{}");}catch(e){}
  var mission=CO.doneCount()/30*100;
  var projects=Object.values(base.checks||{}).filter(Boolean).length/60*100;
  var vocab=0;if(speak.termStats){var known=Object.keys(speak.termStats).filter(function(k){var x=speak.termStats[k];return x.right>=2&&x.natural>=1;}).length;vocab=Math.min(100,known/109*100);}
  var star=0;if(speak.starScores){var vals=Object.values(speak.starScores);star=vals.length?vals.reduce(function(n,x){return n+(x.overall||0);},0)/vals.length:0;}
  var deep=0;if(ext.tasks)deep=Object.values(ext.tasks).filter(Boolean).length/120*100;
  var stakeholder=0;if(comms.scores){var cs=Object.values(comms.scores);stakeholder=cs.length?cs.reduce(function(n,x){return n+(x.score||0);},0)/cs.length:0;}
- return {missions:Math.round(mission),projects:Math.round(projects),vocab:Math.round(vocab),star:Math.round(star),deep:Math.round(deep),stakeholder:Math.round(stakeholder)};
+ var coding=0,codingFirst=0;if(forge.attempts&&forge.attempts.length){
+   var fa=forge.attempts.slice(-25);
+   coding=fa.reduce(function(n,x){return n+(x.score||0);},0)/fa.length;
+   var fp=fa.filter(function(x){return x.dims&&x.dims["First Pass"]>=85;});
+   codingFirst=fp.length;
+ }
+ return {missions:Math.round(mission),projects:Math.round(projects),vocab:Math.round(vocab),star:Math.round(star),deep:Math.round(deep),stakeholder:Math.round(stakeholder),coding:Math.round(coding),codingFirst:codingFirst};
 }
 function readiness(){
  var ag=aggregate(),o=otherSignals();
- var internal=Math.round(ag.score*.35+o.missions*.12+o.projects*.08+o.vocab*.12+o.star*.12+o.deep*.12+o.stakeholder*.09);
+ var internal=Math.round(ag.score*.25+o.coding*.20+o.missions*.10+o.projects*.07+o.vocab*.10+o.star*.10+o.deep*.10+o.stakeholder*.08);
  return {score:internal,ag:ag,o:o};
 }
 function gates(r){
@@ -87,6 +94,8 @@ function gates(r){
   ["STAR delivery",r.o.star>=85,r.o.star+"%","Average production STAR score ≥85"],
   ["Deep recovery",r.o.deep>=90,r.o.deep+"%","≥90% of enterprise deep tasks"],
   ["Stakeholder translation",r.o.stakeholder>=85,r.o.stakeholder+"%","Average audience-fit ≥85"],
+  ["Elite coding proficiency",r.o.coding>=90,r.o.coding+"%","Recent Coding Forge average ≥90"],
+  ["First-pass coding",r.o.codingFirst>=5,r.o.codingFirst+"/5","At least five recent coding attempts with first-pass dimension ≥85"],
   ["Blind scenario passes",r.ag.blind>=6,r.ag.blind+"/6","Six ≥85 attempts without reveal"],
   ["Repeated elite passes",r.ag.passes>=5,r.ag.passes+"/5","Five recent ≥90 scenario passes"],
   ["No weak skill dimension",minDim>=85,minDim+"%","Every proof dimension ≥85"],
@@ -100,6 +109,7 @@ function nextPlan(r){
  if(sig.vocab<90)arr.push(["Vocabulary","Run Natural Use + Contrast on weak terms until 90% fluency."]);
  if(sig.star<85)arr.push(["STAR","Do one STAR scenario without model reveal; keep Action first-person and Result measured."]);
  if(sig.deep<90)arr.push(["Deep recovery","Complete the next 8-task enterprise stage and explain WHY for every item."]);
+ if(sig.coding<90)arr.push(["Coding Forge","Run a blind Build/Debug/Optimize challenge; target ≥90 with file discipline and WHY."]);
  if(r.ag.blind<6)arr.push(["Blind transfer","Run a coach scenario without revealing solution; target ≥85."]);
  var weak=dims.slice().sort(function(a,b){return (r.ag.dims[a]||0)-(r.ag.dims[b]||0);})[0];
  if((r.ag.dims[weak]||0)<85)arr.push([weak,"Lowest proof dimension. Pick a scenario and answer specifically to improve "+weak.toLowerCase()+"."]);
