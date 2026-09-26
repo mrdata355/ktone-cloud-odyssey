@@ -148,6 +148,137 @@ function openPalette(){
 }
 function closePalette(){var p=$("#odysseyCommandPalette");if(p)p.classList.remove("open");}
 
+
+function openRichModal(title,kicker,body,actions){
+ var modal=$("#modal"),content=$("#modalContent");if(!modal||!content)return;
+ content.innerHTML='<span class="micro">'+esc(kicker||"CLOUD ODYSSEY")+'</span><h2>'+esc(title)+'</h2>'+
+ '<div class="u-rich-modal-body">'+body+'</div>'+
+ '<div class="u-rich-modal-actions">'+(actions||[]).map(function(a){return '<button class="'+(a.primary?"primary-btn":"secondary-btn")+'" data-rich-action="'+esc(a.action)+'">'+esc(a.label)+'</button>';}).join("")+'</div>';
+ modal.classList.remove("hidden");
+ $("[data-rich-action]",content).forEach(function(b){b.onclick=function(){
+   var action=b.dataset.richAction;
+   modal.classList.add("hidden");
+   handleRichAction(action);
+ };});
+}
+function handleRichAction(action){
+ if(!action)return;
+ if(action.indexOf("view:")===0){activate(action.slice(5));return;}
+ if(action.indexOf("mission:")===0){
+   var p=action.slice(8).split(",");CO.openMission(+p[0],+p[1]);return;
+ }
+ if(action.indexOf("world:")===0){
+   var wi=+action.slice(6),w=CO.worlds[wi];
+   if(w)openRichModal(w.icon+" "+w.name,"WORLD "+String(wi+1).padStart(2,"0"),
+     '<p>'+esc(w.desc)+'</p><div class="u-modal-chips">'+w.stack.map(function(x){return '<span>'+esc(x)+'</span>';}).join("")+'</div>'+
+     '<div class="u-modal-list">'+w.missions.map(function(m,mi){return '<div><b>'+esc(m.title)+'</b><span>'+esc(w.skills[mi])+' • '+esc(m.type)+'</span><button data-modal-mission="'+wi+','+mi+'">Launch</button></div>';}).join("")+'</div>',
+     [{label:"Mission Control",action:"view:missions"},{label:"Practice this world",action:"mission:"+wi+",0",primary:true}]
+   );
+   setTimeout(function(){$("[data-modal-mission]",$("#modalContent")).forEach(function(b){b.onclick=function(){var q=b.dataset.modalMission.split(",");$("#modal").classList.add("hidden");CO.openMission(+q[0],+q[1]);};});},0);
+   return;
+ }
+ if(action==="surprise"){
+   var wi=Math.floor(Math.random()*CO.worlds.length),mi=Math.floor(Math.random()*3);CO.openMission(wi,mi);return;
+ }
+ if(action==="weakest"){
+   activate("skills");return;
+ }
+}
+function createExperienceLaunchpad(){
+ var command=$("#view-command");if(!command||$("#odysseyLaunchpad"))return;
+ var hero=$(".hero-grid",command);if(!hero)return;
+ var section=D.createElement("section");section.id="odysseyLaunchpad";section.className="u-launchpad";
+ section.innerHTML=
+ '<div class="u-launchpad-head"><div><span class="micro">PICK YOUR ENERGY</span><h3>What do you feel like doing?</h3><p>No giant checklist. Pick a mode and Cloud Odyssey drops you into the right kind of practice.</p></div><button class="u-surprise" data-rich-action="surprise">✦ Surprise me</button></div>'+
+ '<div class="u-launchpad-grid">'+
+   '<button class="u-mode-card cyan" data-rich-action="view:pattern-match"><span class="u-mode-icon">⚡</span><div><small>5–8 MIN</small><b>Quick Win</b><p>Fast pattern matching. Get momentum without opening an IDE.</p></div><em>Start easy →</em></button>'+
+   '<button class="u-mode-card violet" data-rich-action="view:coding-forge"><span class="u-mode-icon">{ }</span><div><small>20–35 MIN</small><b>Build Something</b><p>Write, debug, optimize and productionize one real pattern.</p></div><em>Open forge →</em></button>'+
+   '<button class="u-mode-card gold" data-rich-action="view:speaking"><span class="u-mode-icon">◉</span><div><small>10–15 MIN</small><b>Talk It Through</b><p>Vocabulary + STAR practice until the terms sound natural.</p></div><em>Start speaking →</em></button>'+
+   '<button class="u-mode-card coral" data-rich-action="view:warroom"><span class="u-mode-icon">⚠</span><div><small>10–20 MIN</small><b>Break Production</b><p>Handle a live incident without destroying the evidence.</p></div><em>Enter war room →</em></button>'+
+   '<button class="u-mode-card blue" data-rich-action="view:cloud-forge"><span class="u-mode-icon">☁</span><div><small>PROJECT MODE</small><b>Cloud Adventure</b><p>Build an AWS or GCP system end to end.</p></div><em>Choose cloud →</em></button>'+
+   '<button class="u-mode-card green" data-rich-action="view:stakeholder"><span class="u-mode-icon">☍</span><div><small>8–12 MIN</small><b>Explain My Work</b><p>Practice speaking to executives, DE, BI, MLOps, SRE and more.</p></div><em>Choose audience →</em></button>'+
+ '</div>';
+ hero.insertAdjacentElement("afterend",section);
+ $("[data-rich-action]",section).forEach(function(b){b.onclick=function(){handleRichAction(b.dataset.richAction);};});
+}
+function addActionButton(container,label,action,kind){
+ var b=D.createElement("button");b.className="u-context-btn "+(kind||"");b.textContent=label;b.dataset.richAction=action;
+ b.onclick=function(e){e.preventDefault();e.stopPropagation();handleRichAction(action);};container.appendChild(b);return b;
+}
+function enhanceCommandCards(){
+ var command=$("#view-command");if(!command)return;
+ $(".kpi-card",command).forEach(function(card,i){
+   if(card.querySelector(".u-card-actions"))return;
+   var a=D.createElement("div");a.className="u-card-actions";
+   var routes=[["Open missions","view:missions"],["Open PROJECTS*","view:projects"],["Try incident","view:warroom"],["View evidence","view:skills"]];
+   addActionButton(a,routes[i][0],routes[i][1],"quiet");card.appendChild(a);
+ });
+ $("#campaignRows .campaign-row",command).forEach(function(row,i){
+   if(row.querySelector(".u-inline-actions"))return;
+   var a=D.createElement("div");a.className="u-inline-actions";addActionButton(a,"Explore","world:"+i,"");addActionButton(a,"Start quest","mission:"+i+",0","primary");row.appendChild(a);
+ });
+ $("#telemetry .telemetry-tile",command).forEach(function(tile,i){
+   if(tile.querySelector(".u-tile-action"))return;
+   var b=D.createElement("button");b.className="u-tile-action";b.textContent=i===5?"Diagnose →":"Inspect →";
+   b.onclick=function(){if(i===5)activate("warroom");else openRichModal(tile.querySelector("span").textContent,"LIVE PLATFORM SIGNAL",'<p>This signal is part of the simulated production environment. Use it as evidence when deciding whether a system is healthy, degraded, or ready to publish.</p><div class="u-signal-big">'+esc(tile.querySelector("b").textContent)+'</div>',[{label:"Open Incident War Room",action:"view:warroom",primary:true},{label:"View skills evidence",action:"view:skills"}]);};tile.appendChild(b);
+ });
+ var radar=$(".command-grid .section-card:nth-child(2)",command);
+ if(radar&&!radar.querySelector(".u-section-actions")){var ra=D.createElement("div");ra.className="u-section-actions";addActionButton(ra,"Train weakest skill","weakest","primary");addActionButton(ra,"Open proficiency","view:elite","");radar.appendChild(ra);}
+}
+function enhanceProjectCards(){
+ $("#projectsBoard .project-card").forEach(function(card,i){
+   if(card.querySelector(".u-project-actions"))return;
+   var actions=D.createElement("div");actions.className="u-project-actions";
+   addActionButton(actions,"Open world","world:"+i,"");
+   addActionButton(actions,"Practice project","mission:"+i+",0","primary");
+   addActionButton(actions,"Explain it","view:stakeholder","quiet");
+   card.appendChild(actions);
+ });
+}
+function enhanceSkillCards(){
+ var skills=$("#view-skills");if(!skills)return;
+ $(".skill-row",skills).forEach(function(row){
+   if(row.querySelector(".u-mini-action"))return;
+   var b=D.createElement("button");b.className="u-mini-action";b.textContent="Practice";
+   b.onclick=function(){activate("pattern-match");};row.appendChild(b);
+ });
+ $(".signal-card",skills).forEach(function(card,i){
+   if(card.querySelector(".u-card-actions"))return;
+   var a=D.createElement("div");a.className="u-card-actions";
+   addActionButton(a,i<2?"Prove it in code":"Practice explanation",i<2?"view:coding-forge":"view:stakeholder","quiet");card.appendChild(a);
+ });
+}
+function enhanceRelics(){
+ $("#relicVault .relic-card").forEach(function(card,i){
+   if(card.querySelector(".u-project-actions"))return;
+   var a=D.createElement("div");a.className="u-project-actions";
+   addActionButton(a,"View world","world:"+i,"");
+   addActionButton(a,card.classList.contains("locked")?"Unlock path":"Revalidate","mission:"+i+",0","primary");
+   card.appendChild(a);
+ });
+}
+function enhanceWorldCards(){
+ $("#worldMap .world-node").forEach(function(card,i){
+   if(card.dataset.uWholeCard)return;card.dataset.uWholeCard="1";card.setAttribute("role","button");card.setAttribute("tabindex","0");
+   card.addEventListener("click",function(e){if(e.target.closest("button"))return;handleRichAction("world:"+i);});
+   card.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();handleRichAction("world:"+i);}});
+ });
+}
+function enhanceSectionHeaders(){
+ var map=[
+  ["#view-command .command-grid.lower .section-card:first-child","Run incident","view:warroom"],
+  ["#view-command .command-grid.lower .section-card:last-child","See all missions","view:missions"],
+  ["#view-skills .section-card:first-child","Pattern practice","view:pattern-match"],
+  ["#view-skills .section-card:last-child","Stakeholder practice","view:stakeholder"]
+ ];
+ map.forEach(function(x){
+   var card=$(x[0]);if(!card)return;var head=$(".section-head",card);if(!head||head.querySelector(".u-context-btn"))return;addActionButton(head,x[1],x[2],"quiet");
+ });
+}
+function runEnhancements(){
+ createExperienceLaunchpad();enhanceCommandCards();enhanceProjectCards();enhanceSkillCards();enhanceRelics();enhanceWorldCards();enhanceSectionHeaders();
+}
+
 function addSpotlights(){
  var selectors=[
   ".hero-panel",".byte-card",".kpi-card",".section-card",".world-node",".mission-table",
@@ -229,11 +360,12 @@ function markActiveNav(){
 }
 
 var observer=new MutationObserver(function(){
- groupNavigation();addSpotlights();improveAccessibility();markActiveNav();updateStatus();
+ groupNavigation();runEnhancements();addSpotlights();improveAccessibility();markActiveNav();updateStatus();
 });
 observer.observe($("#workspace")||D.body,{childList:true,subtree:true});
 
 groupNavigation();
+runEnhancements();
 createStatusStrip();
 createDock();
 createPalette();
@@ -250,6 +382,6 @@ window.CloudOdysseyUI={
  activate:activate,
  openPalette:openPalette,
  closePalette:closePalette,
- refresh:function(){groupNavigation();addSpotlights();improveAccessibility();updateStatus();}
+ refresh:function(){groupNavigation();runEnhancements();addSpotlights();improveAccessibility();updateStatus();}
 };
 })();
