@@ -4,6 +4,9 @@
 
 const STORAGE_KEY='cloud_odyssey_enterprise_v3';
 const artifactNames=['Architecture + grain','Contracts + schemas','Production code path','Automated tests','Observability + SLO','Runbook + rollback'];
+let activeEditorFile='solution.py';
+let editorFiles={'solution.py':'','tests.py':'','pipeline.yaml':''};
+let audioCtx=null;
 
 const worlds=[
 {id:'ingestion',name:'Ingestion Gateway',icon:'🛰️',desc:'Governed reservation ingestion',colors:['#0b6e72','#12335f'],relic:'Contract Crystal',stack:['Kafka','PySpark','Schema Registry'],skills:['Kafka contracts','Schema evolution','Idempotency'],
@@ -171,13 +174,48 @@ function openMission(wi,mi){
   state.active={w:wi,m:mi};save();
   loadLab(wi,mi);setView('lab');
 }
+
+function buildTestFile(w,m){
+  return "# Production contract tests for "+m.title+"\n"+
+    "def test_contract_or_grain():\n    assert True  # replace with mission-specific assertion\n\n"+
+    "def test_deterministic_retry():\n    assert True\n\n"+
+    "def test_observable_failure():\n    assert True\n\n"+
+    "def test_business_validation():\n    assert True\n";
+}
+function buildPipelineFile(w,m){
+  return "name: "+w.id+"-"+m.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')+"\n"+
+    "runtime: production-sim\n"+
+    "stages:\n  - validate\n  - transform\n  - test\n  - publish\n"+
+    "rollback: last-known-good\n";
+}
+function saveActiveEditor(){
+  const e=$('#codeEditor');if(e)editorFiles[activeEditorFile]=e.value;
+}
+function switchEditor(file){
+  if(!editorFiles.hasOwnProperty(file))return;
+  saveActiveEditor();activeEditorFile=file;
+  $('.ide-tab').forEach(function(b){b.classList.toggle('active',b.dataset.editor===file);});
+  const e=$('#codeEditor');if(e)e.value=editorFiles[file]||'';
+  const lang=$('#editorLang');
+  if(lang)lang.textContent=file.endsWith('.yaml')?'YAML':file.endsWith('.py')?'PYTHON':'TEXT';
+  toast('Opened '+file);
+}
+function playUiTone(on){
+  try{
+    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+    osc.type='sine';osc.frequency.value=on?720:320;gain.gain.value=.035;
+    osc.connect(gain);gain.connect(audioCtx.destination);osc.start();
+    gain.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+.12);osc.stop(audioCtx.currentTime+.13);
+  }catch(e){}
+}
 function loadLab(wi,mi){
   const w=worlds[wi],m=w.missions[mi],id=missionId(wi,mi);
   $('#labEmpty').classList.add('hidden');$('#labWorkspace').classList.remove('hidden');
   $('#labWorldLabel').textContent='WORLD '+String(wi+1).padStart(2,'0')+' // '+w.name.toUpperCase();
   $('#labTitle').textContent=m.title;
   $('#labState').textContent=state.done[id]?'MASTERED':'IN PROGRESS';
-  $('#codeEditor').value=starterFor(m,w);
+  editorFiles['solution.py']=starterFor(m,w);editorFiles['tests.py']=buildTestFile(w,m);editorFiles['pipeline.yaml']=buildPipelineFile(w,m);activeEditorFile='solution.py';$('#codeEditor').value=editorFiles['solution.py'];$('.ide-tab').forEach(function(b){b.classList.toggle('active',b.dataset.editor==='solution.py');});$('#editorLang').textContent='PYTHON';
   $('#runtimeLog').textContent='$ workspace initialized\n$ stack: '+w.stack.join(' / ')+'\n$ mission: '+m.title+'\n$ waiting for your implementation...';
   renderLabSide('brief',wi,mi);
   renderPipeline(wi,mi);
@@ -216,7 +254,7 @@ function resetTests(m){
 function gradeCurrent(){
   if(!state.active)return;
   const wi=state.active.w,mi=state.active.m,w=worlds[wi],m=w.missions[mi],id=missionId(wi,mi);
-  const text=$('#codeEditor').value.toLowerCase();
+  saveActiveEditor();const text=(editorFiles['solution.py']||'').toLowerCase();
   const tokenPass=m.tokens.map(function(t){return text.indexOf(t.toLowerCase())>=0;});
   const genericPass=[/validate|test|assert|quality/.test(text),/alert|log|monitor|slo|trace|quarantine/.test(text),/rollback|idempot|replay|merge|checkpoint|version/.test(text)];
   const score=[
@@ -259,7 +297,7 @@ function renderMLflow(wi,mi){
 function revealSolution(){
   if(!state.active)return;
   const wi=state.active.w,mi=state.active.m,m=worlds[wi].missions[mi],id=missionId(wi,mi);
-  $('#codeEditor').value=m.solution;
+  editorFiles['solution.py']=m.solution;switchEditor('solution.py');
   logAttempt(id,'Solution revealed');
   appendLog('reference solution loaded — study why each control exists');
   toast('Reference solution loaded');
@@ -321,16 +359,17 @@ function wire(){
   $$('[data-jump]').forEach(function(b){b.onclick=function(){setView(b.dataset.jump);};});
   $$('[data-close-modal]').forEach(function(b){b.onclick=closeModal;});
   $$('.filter-btn').forEach(function(b){b.onclick=function(){$$('.filter-btn').forEach(function(x){x.classList.remove('active');});b.classList.add('active');missionFilter=b.dataset.filter;renderMissions();};});
-  $('#soundToggle').onclick=function(){state.sound=!state.sound;save();toast(state.sound?'Game sounds enabled':'Game sounds muted');};
+  $('#soundToggle').onclick=function(){state.sound=!state.sound;save();playUiTone(state.sound);toast(state.sound?'Game sounds enabled':'Game sounds muted');};
   $('#resumeMission').onclick=function(){if(state.active)openMission(state.active.w,state.active.m);else openMission(0,0);};
   $('#byteHint').onclick=function(){setByte(random(['Start with the data grain before you touch code.','Preserve evidence before changing a failing production system.','Retries must be deterministic. Ask what key makes that true.','If bad data disappears silently, your platform is lying to you.','A senior answer always includes validation, observability and rollback.']));};
   $('#byteChallenge').onclick=function(){setByte(random(['Hard mode: explain the rollback before you explain the happy path.','Hard mode: identify the business KPI that proves your pipeline is correct.','Hard mode: add the test that fails the release before production does.','Hard mode: what happens during replay, late data and partial failure?']));};
   $('#mapZoomIn').onclick=function(){mapZoom=Math.min(1.2,mapZoom+.1);applyMapZoom();};
   $('#mapZoomOut').onclick=function(){mapZoom=Math.max(.7,mapZoom-.1);applyMapZoom();};
   $('#mapZoomReset').onclick=function(){mapZoom=1;applyMapZoom();};
-  $$('.lab-side-tab').forEach(function(b){b.onclick=function(){$$('.lab-side-tab').forEach(function(x){x.classList.remove('active');});b.classList.add('active');if(state.active)renderLabSide(b.dataset.labpanel,state.active.w,state.active.m);};});
+  $('.lab-side-tab').forEach(function(b){b.onclick=function(){$('.lab-side-tab').forEach(function(x){x.classList.remove('active');});b.classList.add('active');if(state.active)renderLabSide(b.dataset.labpanel,state.active.w,state.active.m);};});
+  $('.ide-tab').forEach(function(b){b.onclick=function(){switchEditor(b.dataset.editor);};});
   $('#runCode').onclick=runTestsOnly;$('#submitLab').onclick=gradeCurrent;$('#revealSolution').onclick=revealSolution;
-  $('#formatCode').onclick=function(){const e=$('#codeEditor');e.value=e.value.replace(/\t/g,'    ').replace(/[ ]+$/gm,'');toast('Editor formatting applied');};
+  $('#formatCode').onclick=function(){const e=$('#codeEditor');e.value=e.value.replace(/\t/g,'    ').replace(/[ ]+$/gm,'');editorFiles[activeEditorFile]=e.value;toast('Formatted '+activeEditorFile);};
   $('#clearLogs').onclick=function(){$('#runtimeLog').textContent='$ logs cleared';};
   $('#runNotebook').onclick=function(){if(!state.active)return;const wi=state.active.w,mi=state.active.m,w=worlds[wi],m=w.missions[mi];$('#notebookOutput').innerHTML='rows=12,481 • quality=99.92% • freshness=3m 12s • <span style="color:#6cf0a9">VALIDATION GREEN</span>';appendLog('validation notebook executed for '+w.name+' / '+m.title);};
   $('#newIncident').onclick=generateIncident;
