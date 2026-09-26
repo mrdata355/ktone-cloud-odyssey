@@ -112,7 +112,7 @@ function runTabTest(){
 function buttonScan(){
  var view=$(".view.active"),buttons=view?$("button",view):[];
  var rows=buttons.map(b=>({
-   label:(b.textContent||b.title||b.id||"(unnamed)").replace(/\\s+/g," ").trim().slice(0,80),
+   label:(b.textContent||b.title||b.id||"(unnamed)").replace(/\s+/g," ").trim().slice(0,80),
    id:b.id||"",
    wired:typeof b.onclick==="function" || !!b.closest("[data-rich-action]")
  }));
