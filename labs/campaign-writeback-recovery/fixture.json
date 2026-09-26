@@ -1,0 +1,467 @@
+{
+  "baseline_cut": {
+    "source_table_id": "delta-G1",
+    "version": 700
+  },
+  "baseline": [
+    {
+      "tenant_id": "TEN-A",
+      "customer_id": "C100",
+      "campaign_id": "FALL26",
+      "decision_seq": 7,
+      "offer_id": "O10",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-17T10:00:00Z"
+    },
+    {
+      "tenant_id": "TEN-A",
+      "customer_id": "C200",
+      "campaign_id": "FALL26",
+      "decision_seq": 4,
+      "offer_id": "O20",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-17T10:05:00Z"
+    },
+    {
+      "tenant_id": "TEN-B",
+      "customer_id": "C100",
+      "campaign_id": "FALL26",
+      "decision_seq": 2,
+      "offer_id": "O30",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-17T10:10:00Z"
+    },
+    {
+      "tenant_id": "TEN-B",
+      "customer_id": "C300",
+      "campaign_id": "FALL26",
+      "decision_seq": 8,
+      "offer_id": "O40",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-17T10:15:00Z"
+    }
+  ],
+  "manifest": {
+    "source_table_id": "delta-G1",
+    "start_version_inclusive": 701,
+    "end_version_inclusive": 706,
+    "expected_events": 10,
+    "sha256": "76798b55272760e264fd3cadd56ce2c9aa4cfa4882e46fca9ede97c6fa18769e",
+    "canonicalization": "UTF-8 JSON; sorted keys; no whitespace; rows ordered by event_id; one LF after every row",
+    "versions": [
+      {
+        "version": 701,
+        "rows": 2,
+        "sha256": "acbeabb26410b792ad080108b45bf65c114e2f009dbd05cb27fb126e6f1efdcb"
+      },
+      {
+        "version": 702,
+        "rows": 2,
+        "sha256": "e6c2bba53af899c0d260d3c7c8fef62c3d3e5215f50a8934086e02ceff34a26a"
+      },
+      {
+        "version": 703,
+        "rows": 2,
+        "sha256": "38478dec14b7c713e3b1ba7bdff5252d9b5b428ae2e11b3d67f4c4a79976f59c"
+      },
+      {
+        "version": 704,
+        "rows": 2,
+        "sha256": "476d3156046036fd3ac6fdb4fe28382fca61283c6c96aedb684794c8ce007d14"
+      },
+      {
+        "version": 705,
+        "rows": 1,
+        "sha256": "7411b1d8b6d6c0e6e5bc768d0590d7c83911d3eef1c5251545c67c34089f0a12"
+      },
+      {
+        "version": 706,
+        "rows": 1,
+        "sha256": "d231f8b9664e65b09c599b1529ca86bdf4ba5675e9b071b467814fcb100210f0"
+      }
+    ]
+  },
+  "archive_events": [
+    {
+      "event_id": "R01",
+      "source_table_id": "delta-G1",
+      "_commit_version": 701,
+      "_commit_timestamp": "2026-09-18T09:00:00Z",
+      "_change_type": "update_preimage",
+      "tenant_id": "TEN-A",
+      "customer_id": "C100",
+      "campaign_id": "FALL26",
+      "decision_seq": 7,
+      "offer_id": "O10",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-17T10:00:00Z"
+    },
+    {
+      "event_id": "R02",
+      "source_table_id": "delta-G1",
+      "_commit_version": 701,
+      "_commit_timestamp": "2026-09-18T09:00:00Z",
+      "_change_type": "update_postimage",
+      "tenant_id": "TEN-A",
+      "customer_id": "C100",
+      "campaign_id": "FALL26",
+      "decision_seq": 8,
+      "offer_id": "O11",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-18T08:59:00Z"
+    },
+    {
+      "event_id": "R03",
+      "source_table_id": "delta-G1",
+      "_commit_version": 702,
+      "_commit_timestamp": "2026-09-19T08:00:00Z",
+      "_change_type": "update_preimage",
+      "tenant_id": "TEN-A",
+      "customer_id": "C200",
+      "campaign_id": "FALL26",
+      "decision_seq": 4,
+      "offer_id": "O20",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-17T10:05:00Z"
+    },
+    {
+      "event_id": "R04",
+      "source_table_id": "delta-G1",
+      "_commit_version": 702,
+      "_commit_timestamp": "2026-09-19T08:00:00Z",
+      "_change_type": "update_postimage",
+      "tenant_id": "TEN-A",
+      "customer_id": "C200",
+      "campaign_id": "FALL26",
+      "decision_seq": 5,
+      "offer_id": null,
+      "status": "WITHDRAWN",
+      "source_updated_at": "2026-09-19T07:59:00Z"
+    },
+    {
+      "event_id": "R05",
+      "source_table_id": "delta-G1",
+      "_commit_version": 703,
+      "_commit_timestamp": "2026-09-19T10:00:00Z",
+      "_change_type": "update_preimage",
+      "tenant_id": "TEN-B",
+      "customer_id": "C100",
+      "campaign_id": "FALL26",
+      "decision_seq": 2,
+      "offer_id": "O30",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-17T10:10:00Z"
+    },
+    {
+      "event_id": "R06",
+      "source_table_id": "delta-G1",
+      "_commit_version": 703,
+      "_commit_timestamp": "2026-09-19T10:00:00Z",
+      "_change_type": "update_postimage",
+      "tenant_id": "TEN-B",
+      "customer_id": "C100",
+      "campaign_id": "FALL26",
+      "decision_seq": 3,
+      "offer_id": "O31",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-19T09:59:00Z"
+    },
+    {
+      "event_id": "R07",
+      "source_table_id": "delta-G1",
+      "_commit_version": 704,
+      "_commit_timestamp": "2026-09-26T08:40:00Z",
+      "_change_type": "update_preimage",
+      "tenant_id": "TEN-B",
+      "customer_id": "C300",
+      "campaign_id": "FALL26",
+      "decision_seq": 8,
+      "offer_id": "O40",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-17T10:15:00Z"
+    },
+    {
+      "event_id": "R08",
+      "source_table_id": "delta-G1",
+      "_commit_version": 704,
+      "_commit_timestamp": "2026-09-26T08:40:00Z",
+      "_change_type": "update_postimage",
+      "tenant_id": "TEN-B",
+      "customer_id": "C300",
+      "campaign_id": "FALL26",
+      "decision_seq": 9,
+      "offer_id": "O41",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-23T08:40:00Z"
+    },
+    {
+      "event_id": "R09",
+      "source_table_id": "delta-G1",
+      "_commit_version": 705,
+      "_commit_timestamp": "2026-09-26T08:41:00Z",
+      "_change_type": "delete",
+      "tenant_id": "TEN-A",
+      "customer_id": "C200",
+      "campaign_id": "FALL26",
+      "decision_seq": 5,
+      "offer_id": null,
+      "status": "WITHDRAWN",
+      "source_updated_at": "2026-09-19T07:59:00Z"
+    },
+    {
+      "event_id": "R10",
+      "source_table_id": "delta-G1",
+      "_commit_version": 706,
+      "_commit_timestamp": "2026-09-26T08:42:00Z",
+      "_change_type": "insert",
+      "tenant_id": "TEN-A",
+      "customer_id": "C400",
+      "campaign_id": "FALL26",
+      "decision_seq": 1,
+      "offer_id": "O50",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-26T08:41:50Z"
+    }
+  ],
+  "raw_captures": [
+    {
+      "capture_id": "capture-R01",
+      "event_id": "R01",
+      "source_table_id": "delta-G1",
+      "_commit_version": 701,
+      "_commit_timestamp": "2026-09-18T09:00:00Z",
+      "_change_type": "update_preimage",
+      "tenant_id": "TEN-A",
+      "customer_id": "C100",
+      "campaign_id": "FALL26",
+      "decision_seq": 7,
+      "offer_id": "O10",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-17T10:00:00Z"
+    },
+    {
+      "capture_id": "capture-R02",
+      "event_id": "R02",
+      "source_table_id": "delta-G1",
+      "_commit_version": 701,
+      "_commit_timestamp": "2026-09-18T09:00:00Z",
+      "_change_type": "update_postimage",
+      "tenant_id": "TEN-A",
+      "customer_id": "C100",
+      "campaign_id": "FALL26",
+      "decision_seq": 8,
+      "offer_id": "O11",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-18T08:59:00Z"
+    },
+    {
+      "capture_id": "capture-R03",
+      "event_id": "R03",
+      "source_table_id": "delta-G1",
+      "_commit_version": 702,
+      "_commit_timestamp": "2026-09-19T08:00:00Z",
+      "_change_type": "update_preimage",
+      "tenant_id": "TEN-A",
+      "customer_id": "C200",
+      "campaign_id": "FALL26",
+      "decision_seq": 4,
+      "offer_id": "O20",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-17T10:05:00Z"
+    },
+    {
+      "capture_id": "capture-R04",
+      "event_id": "R04",
+      "source_table_id": "delta-G1",
+      "_commit_version": 702,
+      "_commit_timestamp": "2026-09-19T08:00:00Z",
+      "_change_type": "update_postimage",
+      "tenant_id": "TEN-A",
+      "customer_id": "C200",
+      "campaign_id": "FALL26",
+      "decision_seq": 5,
+      "offer_id": null,
+      "status": "WITHDRAWN",
+      "source_updated_at": "2026-09-19T07:59:00Z"
+    },
+    {
+      "capture_id": "capture-R05",
+      "event_id": "R05",
+      "source_table_id": "delta-G1",
+      "_commit_version": 703,
+      "_commit_timestamp": "2026-09-19T10:00:00Z",
+      "_change_type": "update_preimage",
+      "tenant_id": "TEN-B",
+      "customer_id": "C100",
+      "campaign_id": "FALL26",
+      "decision_seq": 2,
+      "offer_id": "O30",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-17T10:10:00Z"
+    },
+    {
+      "capture_id": "capture-R06",
+      "event_id": "R06",
+      "source_table_id": "delta-G1",
+      "_commit_version": 703,
+      "_commit_timestamp": "2026-09-19T10:00:00Z",
+      "_change_type": "update_postimage",
+      "tenant_id": "TEN-B",
+      "customer_id": "C100",
+      "campaign_id": "FALL26",
+      "decision_seq": 3,
+      "offer_id": "O31",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-19T09:59:00Z"
+    },
+    {
+      "capture_id": "capture-R07",
+      "event_id": "R07",
+      "source_table_id": "delta-G1",
+      "_commit_version": 704,
+      "_commit_timestamp": "2026-09-26T08:40:00Z",
+      "_change_type": "update_preimage",
+      "tenant_id": "TEN-B",
+      "customer_id": "C300",
+      "campaign_id": "FALL26",
+      "decision_seq": 8,
+      "offer_id": "O40",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-17T10:15:00Z"
+    },
+    {
+      "capture_id": "capture-R08",
+      "event_id": "R08",
+      "source_table_id": "delta-G1",
+      "_commit_version": 704,
+      "_commit_timestamp": "2026-09-26T08:40:00Z",
+      "_change_type": "update_postimage",
+      "tenant_id": "TEN-B",
+      "customer_id": "C300",
+      "campaign_id": "FALL26",
+      "decision_seq": 9,
+      "offer_id": "O41",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-23T08:40:00Z"
+    },
+    {
+      "capture_id": "capture-R09",
+      "event_id": "R09",
+      "source_table_id": "delta-G1",
+      "_commit_version": 705,
+      "_commit_timestamp": "2026-09-26T08:41:00Z",
+      "_change_type": "delete",
+      "tenant_id": "TEN-A",
+      "customer_id": "C200",
+      "campaign_id": "FALL26",
+      "decision_seq": 5,
+      "offer_id": null,
+      "status": "WITHDRAWN",
+      "source_updated_at": "2026-09-19T07:59:00Z"
+    },
+    {
+      "capture_id": "capture-R10",
+      "event_id": "R10",
+      "source_table_id": "delta-G1",
+      "_commit_version": 706,
+      "_commit_timestamp": "2026-09-26T08:42:00Z",
+      "_change_type": "insert",
+      "tenant_id": "TEN-A",
+      "customer_id": "C400",
+      "campaign_id": "FALL26",
+      "decision_seq": 1,
+      "offer_id": "O50",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-26T08:41:50Z"
+    },
+    {
+      "capture_id": "replay-R02",
+      "event_id": "R02",
+      "source_table_id": "delta-G1",
+      "_commit_version": 701,
+      "_commit_timestamp": "2026-09-18T09:00:00Z",
+      "_change_type": "update_postimage",
+      "tenant_id": "TEN-A",
+      "customer_id": "C100",
+      "campaign_id": "FALL26",
+      "decision_seq": 8,
+      "offer_id": "O11",
+      "status": "ACTIVE",
+      "source_updated_at": "2026-09-18T08:59:00Z"
+    },
+    {
+      "capture_id": "replay-R09",
+      "event_id": "R09",
+      "source_table_id": "delta-G1",
+      "_commit_version": 705,
+      "_commit_timestamp": "2026-09-26T08:41:00Z",
+      "_change_type": "delete",
+      "tenant_id": "TEN-A",
+      "customer_id": "C200",
+      "campaign_id": "FALL26",
+      "decision_seq": 5,
+      "offer_id": null,
+      "status": "WITHDRAWN",
+      "source_updated_at": "2026-09-19T07:59:00Z"
+    }
+  ],
+  "replacement_table": {
+    "logical_name": "hgv_lab.gold.promo_assignment",
+    "source_table_id": "delta-G2",
+    "current_version": 3,
+    "snapshot": [
+      {
+        "tenant_id": "TEN-A",
+        "customer_id": "C100",
+        "campaign_id": "FALL26",
+        "decision_seq": 8,
+        "offer_id": "O11",
+        "status": "ACTIVE",
+        "source_updated_at": "2026-09-18T08:59:00Z"
+      },
+      {
+        "tenant_id": "TEN-B",
+        "customer_id": "C100",
+        "campaign_id": "FALL26",
+        "decision_seq": 3,
+        "offer_id": "O31",
+        "status": "ACTIVE",
+        "source_updated_at": "2026-09-19T09:59:00Z"
+      },
+      {
+        "tenant_id": "TEN-B",
+        "customer_id": "C300",
+        "campaign_id": "FALL26",
+        "decision_seq": 9,
+        "offer_id": "O41",
+        "status": "ACTIVE",
+        "source_updated_at": "2026-09-23T08:40:00Z"
+      },
+      {
+        "tenant_id": "TEN-A",
+        "customer_id": "C400",
+        "campaign_id": "FALL26",
+        "decision_seq": 1,
+        "offer_id": "O50",
+        "status": "ACTIVE",
+        "source_updated_at": "2026-09-26T08:41:50Z"
+      }
+    ]
+  },
+  "source_properties": {
+    "runtime": "Databricks Runtime 16.4 LTS",
+    "legacy_cdf_enabled": true,
+    "old_table_earliest_live_cdf_version": 704,
+    "source_pause_for_recovery": true
+  },
+  "legacy_ack": {
+    "source_kind": "WRITEBACK_ACK",
+    "origin_operation_id": "old-L-A100-8",
+    "tenant_id": "TEN-A",
+    "customer_id": "C100",
+    "campaign_id": "FALL26",
+    "decision_seq": 8,
+    "offer_id": "O11",
+    "status": "ACTIVE"
+  }
+}
