@@ -1,0 +1,43 @@
+
+/* Stakeholder Room */
+.stakeholder-shell{display:grid;grid-template-columns:250px minmax(0,1fr) 320px;gap:12px}
+.stakeholder-sidebar,.stakeholder-main,.stakeholder-practice{border-radius:18px;overflow:hidden}
+.audience-list{display:grid;gap:6px;padding:10px}
+.audience-btn{display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:10px;padding:9px;text-align:left}
+.audience-btn:hover,.audience-btn.active{border-color:rgba(103,229,255,.25);background:rgba(103,229,255,.06)}
+.audience-btn .aud-icon{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:rgba(255,255,255,.04)}
+.audience-btn b{display:block;font-size:8px}.audience-btn span{font-size:7px;color:#7489a5}.audience-btn em{font:700 7px JetBrains Mono;color:#7892b3;font-style:normal}
+.context-selector{display:grid;gap:6px;padding:10px;border-top:1px solid var(--line)}
+.context-selector select{width:100%;background:#0c1425;border:1px solid var(--line);color:#dcecff;border-radius:9px;padding:8px;font-size:8px}
+.stakeholder-hero{padding:18px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,rgba(71,197,255,.08),rgba(139,92,246,.06))}
+.stakeholder-hero .role-line{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.stakeholder-hero h2{font-size:24px;margin:6px 0}.stakeholder-hero p{font-size:9px;color:#91a4bd;line-height:1.6;max-width:820px}
+.comms-tabs{display:flex;gap:5px;overflow:auto;padding:10px;border-bottom:1px solid var(--line)}
+.comms-tab{border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:9px;padding:7px 9px;font-size:7px;white-space:nowrap}
+.comms-tab.active{border-color:rgba(104,232,255,.24);background:rgba(104,232,255,.07);color:#cffaff}
+.comms-content{padding:14px}.comms-pane{display:none}.comms-pane.active{display:block}
+.audience-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.summary-card{border:1px solid var(--line);border-radius:11px;padding:10px;background:rgba(255,255,255,.018)}
+.summary-card span{display:block;font-size:7px;color:#758aa7;letter-spacing:.1em}.summary-card b{display:block;font-size:10px;margin-top:5px;line-height:1.35}
+.talk-track{border:1px solid var(--line);border-radius:12px;padding:14px;background:#07101d}
+.talk-track .track-label{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
+.talk-track .track-label span{font-size:7px;color:#7a90ae}.talk-track p{font-size:10px;line-height:1.75;color:#c0cede;margin:0}
+.track-actions{display:flex;gap:6px;margin-top:10px}.track-actions button{border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:8px;padding:6px 8px;font-size:7px}
+.translation-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.translation-card{border:1px solid var(--line);border-radius:11px;padding:11px;background:rgba(255,255,255,.018)}
+.translation-card h4{font-size:9px;margin:0 0 7px}.translation-card ul{padding-left:15px;margin:0}.translation-card li{font-size:8px;color:#8fa3bc;line-height:1.55;margin:4px 0}
+.translation-card.good{border-color:rgba(108,240,169,.16)}.translation-card.warn{border-color:rgba(255,210,106,.16)}
+.handoff-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.handoff-card{border:1px solid var(--line);border-radius:11px;padding:11px}.handoff-card h4{font-size:9px;margin:0 0 6px}.handoff-card p{font-size:8px;color:#879bb4;line-height:1.5;margin:0}.handoff-card code{display:block;font:7px/1.5 JetBrains Mono;color:#91d9f6;margin-top:7px;white-space:pre-wrap}
+.question-list{display:grid;gap:7px}.stake-question{border:1px solid var(--line);border-radius:10px;padding:9px;background:rgba(255,255,255,.018)}
+.stake-question b{font-size:8px}.stake-question p{font-size:7px;color:#8094ad;line-height:1.45;margin:5px 0 0}.stake-question button{margin-top:6px;border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:7px;padding:5px 7px;font-size:7px}
+.practice-head{padding:13px;border-bottom:1px solid var(--line)}.practice-head h3{font-size:11px;margin:3px 0}.practice-body{padding:12px}
+.practice-prompt{border:1px solid var(--line);border-radius:11px;padding:10px;background:rgba(255,255,255,.02);font-size:9px;line-height:1.5}
+.practice-answer{width:100%;min-height:180px;margin-top:8px;background:#050914;border:1px solid var(--line);border-radius:10px;color:#d8e7f7;padding:10px;font:8px/1.55 Inter;resize:vertical}
+.practice-actions{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}.practice-actions button{border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:8px;padding:7px 8px;font-size:7px}
+.practice-actions .primary{background:linear-gradient(135deg,#198fa9,#5f63dd)}
+.practice-score{margin-top:10px;border:1px solid var(--line);border-radius:11px;padding:10px}.practice-score .score{font:800 26px JetBrains Mono}.practice-score span{font-size:7px;color:#768ba7}.practice-feedback{display:grid;gap:5px;margin-top:8px}.practice-feedback div{font-size:7px;border-radius:8px;padding:6px;border:1px solid var(--line)}.practice-feedback .hit{color:#a6efc4;border-color:rgba(108,240,169,.18)}.practice-feedback .miss{color:#ffabb9;border-color:rgba(255,111,137,.18)}
+.team-map{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.team-card{border:1px solid var(--line);border-radius:10px;padding:10px;background:rgba(255,255,255,.018)}.team-card b{font-size:8px}.team-card span{display:block;font-size:7px;color:#798da7;margin-top:4px}.team-card p{font-size:7px;color:#879ab1;line-height:1.45}
+.exec-metric{color:#ffd979}.tech-metric{color:#86ddff}.risk-metric{color:#ff9aac}.proof-metric{color:#98efbc}
+@media(max-width:1300px){.stakeholder-shell{grid-template-columns:210px 1fr}.stakeholder-practice{grid-column:1/-1}.audience-summary{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.stakeholder-shell{grid-template-columns:1fr}.audience-list{grid-template-columns:1fr 1fr}.translation-grid,.handoff-grid,.team-map{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.audience-list,.audience-summary,.translation-grid,.handoff-grid,.team-map{grid-template-columns:1fr}}
