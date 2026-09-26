@@ -381,5 +381,11 @@ function install(){
  var s2=document.createElement("section");s2.className="view";s2.id="view-pattern-match";work.appendChild(s2);
  renderForge();renderMatch();
 }
+window.CloudOdysseyCodingForge={
+  patterns:patterns,
+  challenges:challenges,
+  getState:function(){return st;},
+  save:save
+};
 install();
 })();
