@@ -80,22 +80,29 @@ function otherSignals(){
    codingFirst=fp.length;
  }
  var ladderScore=0;if(ladder.scores&&Object.keys(ladder.scores).length){var lv=Object.values(ladder.scores);ladderScore=lv.reduce(function(n,x){return n+(x||0);},0)/lv.length;}
- var aws=0,gcp=0;
+ var aws=0,gcp=0,azure=0,databricks=0,snowflake=0;
  if(cloud.checks){
-   var keys=Object.keys(cloud.checks),awsDone=keys.filter(function(k){return k.indexOf("aws-")===0&&cloud.checks[k];}).length,gcpDone=keys.filter(function(k){return k.indexOf("gcp-")===0&&cloud.checks[k];}).length;
-   aws=Math.min(100,Math.round(awsDone/(12*12)*85));
-   gcp=Math.min(100,Math.round(gcpDone/(12*12)*85));
-   if(cloud.evidence){
-     var ae=Object.keys(cloud.evidence).filter(function(k){return k.indexOf("aws-")===0&&(cloud.evidence[k]||"").trim().length>30;}).length;
-     var ge=Object.keys(cloud.evidence).filter(function(k){return k.indexOf("gcp-")===0&&(cloud.evidence[k]||"").trim().length>30;}).length;
-     aws=Math.min(100,aws+Math.round(ae/12*15)); gcp=Math.min(100,gcp+Math.round(ge/12*15));
+   var keys=Object.keys(cloud.checks);
+   function platformScore(prefix,projectCount){
+     var done=keys.filter(function(k){return k.indexOf(prefix+"-")===0&&cloud.checks[k];}).length;
+     var v=Math.min(100,Math.round(done/(12*projectCount)*85));
+     if(cloud.evidence){
+       var ev=Object.keys(cloud.evidence).filter(function(k){return k.indexOf(prefix+"-")===0&&(cloud.evidence[k]||"").trim().length>30;}).length;
+       v=Math.min(100,v+Math.round(ev/projectCount*15));
+     }
+     return v;
    }
+   aws=platformScore("aws",12);
+   gcp=platformScore("gcp",12);
+   azure=platformScore("azure",8);
+   databricks=platformScore("databricks",8);
+   snowflake=platformScore("snowflake",8);
  }
- return {missions:Math.round(mission),projects:Math.round(projects),vocab:Math.round(vocab),star:Math.round(star),deep:Math.round(deep),stakeholder:Math.round(stakeholder),coding:Math.round(coding),codingFirst:codingFirst,ladder:Math.round(ladderScore),aws:aws,gcp:gcp};
+ return {missions:Math.round(mission),projects:Math.round(projects),vocab:Math.round(vocab),star:Math.round(star),deep:Math.round(deep),stakeholder:Math.round(stakeholder),coding:Math.round(coding),codingFirst:codingFirst,ladder:Math.round(ladderScore),aws:aws,gcp:gcp,azure:azure,databricks:databricks,snowflake:snowflake};
 }
 function readiness(){
  var ag=aggregate(),o=otherSignals();
- var internal=Math.round(ag.score*.18+o.coding*.17+o.ladder*.12+o.aws*.08+o.gcp*.08+o.missions*.08+o.projects*.05+o.vocab*.08+o.star*.08+o.deep*.09+o.stakeholder*.07);
+ var internal=Math.round(ag.score*.16+o.coding*.16+o.ladder*.10+o.aws*.04+o.gcp*.04+o.azure*.04+o.databricks*.04+o.snowflake*.04+o.missions*.08+o.projects*.05+o.vocab*.07+o.star*.07+o.deep*.07+o.stakeholder*.04);
  return {score:internal,ag:ag,o:o};
 }
 function gates(r){
@@ -113,6 +120,9 @@ function gates(r){
   ["Adaptive transfer ladder",r.o.ladder>=85,r.o.ladder+"%","Average across recognize → package stages ≥85"],
   ["AWS project forge",r.o.aws>=85,r.o.aws+"%","AWS campaign readiness ≥85 with real evidence slots"],
   ["GCP project forge",r.o.gcp>=85,r.o.gcp+"%","GCP campaign readiness ≥85 with real evidence slots"],
+  ["Azure project forge",r.o.azure>=85,r.o.azure+"%","Azure campaign readiness ≥85 with real evidence slots"],
+  ["Databricks project forge",r.o.databricks>=85,r.o.databricks+"%","Databricks campaign readiness ≥85 with real evidence slots"],
+  ["Snowflake project forge",r.o.snowflake>=85,r.o.snowflake+"%","Snowflake campaign readiness ≥85 with real evidence slots"],
   ["Blind scenario passes",r.ag.blind>=6,r.ag.blind+"/6","Six ≥85 attempts without reveal"],
   ["Repeated elite passes",r.ag.passes>=5,r.ag.passes+"/5","Five recent ≥90 scenario passes"],
   ["No weak skill dimension",minDim>=85,minDim+"%","Every proof dimension ≥85"],
@@ -130,6 +140,9 @@ function nextPlan(r){
  if(sig.ladder<85)arr.push(["Adaptive Ladder","Take one pattern through the next unmet stage: recognize → write → debug → optimize → transfer → review → package."]);
  if(sig.aws<85)arr.push(["AWS Forge","Advance one AWS project stage and log actual sandbox evidence when available."]);
  if(sig.gcp<85)arr.push(["GCP Forge","Advance one GCP project stage and log actual sandbox evidence when available."]);
+ if(sig.azure<85)arr.push(["Azure Forge","Advance one Azure project stage and explain the identity, recovery and cost boundary."]);
+ if(sig.databricks<85)arr.push(["Databricks Forge","Advance one Databricks project stage; emphasize Lakeflow, Unity Catalog, Delta and deployment evidence."]);
+ if(sig.snowflake<85)arr.push(["Snowflake Forge","Advance one Snowflake project stage; prove ingestion, SQL semantics, governance and cost behavior."]);
  if(r.ag.blind<6)arr.push(["Blind transfer","Run a coach scenario without revealing solution; target ≥85."]);
  var weak=dims.slice().sort(function(a,b){return (r.ag.dims[a]||0)-(r.ag.dims[b]||0);})[0];
  if((r.ag.dims[weak]||0)<85)arr.push([weak,"Lowest proof dimension. Pick a scenario and answer specifically to improve "+weak.toLowerCase()+"."]);
