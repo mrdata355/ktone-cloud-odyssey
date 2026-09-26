@@ -28,7 +28,7 @@ var viewMeta={
  "coding-forge":{title:"Elite Coding Forge",icon:"{ }",group:"Engineering Forge",desc:"Build, debug, optimize and productionize"},
  "pattern-match":{title:"Pattern Match Arena",icon:"↔",group:"Engineering Forge",desc:"Rapid problem-to-pattern recognition"},
  "adaptive-ladder":{title:"Adaptive Coding Ladder",icon:"⇧",group:"Engineering Forge",desc:"Recognize through package mastery"},
- "cloud-forge":{title:"AWS + GCP Project Forge",icon:"☁",group:"Cloud Campaigns",desc:"Twenty-four production cloud projects"}
+ "cloud-forge":{title:"Cloud + Lakehouse Project Forge",icon:"☁",group:"Cloud Campaigns",desc:"AWS, GCP, Azure, Databricks and Snowflake production projects"}
 };
 
 function navItems(){
@@ -94,7 +94,7 @@ function createDock(){
  '<button data-dock-view="command" title="Command Center">◈</button>'+
  '<button data-dock-view="lab" title="Resume Cloud Lab">⌘ LAB</button>'+
  '<button data-dock-view="coding-forge" title="Elite Coding Forge">{ }</button>'+
- '<button data-dock-view="cloud-forge" title="AWS + GCP Forge">☁</button>'+
+ '<button data-dock-view="cloud-forge" title="Cloud + Lakehouse Forge">☁</button>'+
  '<button id="dockPalette" class="dock-main" title="Command Palette (Ctrl/Cmd+K)">⌘ K</button>'+
  '<button id="dockQA" title="UI Health">✓</button>';
  D.body.appendChild(dock);
