@@ -207,7 +207,7 @@ function addActionButton(container,label,action,kind){
 }
 function enhanceCommandCards(){
  var command=$("#view-command");if(!command)return;
- $(".kpi-card",command).forEach(function(card,i){
+ $$(".kpi-card",command).forEach(function(card,i){
    if(card.querySelector(".u-card-actions"))return;
    var a=D.createElement("div");a.className="u-card-actions";
    var routes=[["Open missions","view:missions"],["Open PROJECTS*","view:projects"],["Try incident","view:warroom"],["View evidence","view:skills"]];
@@ -237,12 +237,12 @@ function enhanceProjectCards(){
 }
 function enhanceSkillCards(){
  var skills=$("#view-skills");if(!skills)return;
- $(".skill-row",skills).forEach(function(row){
+ $$(".skill-row",skills).forEach(function(row){
    if(row.querySelector(".u-mini-action"))return;
    var b=D.createElement("button");b.className="u-mini-action";b.textContent="Practice";
    b.onclick=function(){activate("pattern-match");};row.appendChild(b);
  });
- $(".signal-card",skills).forEach(function(card,i){
+ $$(".signal-card",skills).forEach(function(card,i){
    if(card.querySelector(".u-card-actions"))return;
    var a=D.createElement("div");a.className="u-card-actions";
    addActionButton(a,i<2?"Prove it in code":"Practice explanation",i<2?"view:coding-forge":"view:stakeholder","quiet");card.appendChild(a);
