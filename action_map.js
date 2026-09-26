@@ -110,7 +110,7 @@ function runTabTest(){
  return {pass:pass,total:nav.length,rows:rows};
 }
 function buttonScan(){
- var view=$(".view.active"),buttons=view?$("button",view):[];
+ var view=$(".view.active"),buttons=view?$$("button",view):[];
  var rows=buttons.map(b=>({
    label:(b.textContent||b.title||b.id||"(unnamed)").replace(/\s+/g," ").trim().slice(0,80),
    id:b.id||"",
