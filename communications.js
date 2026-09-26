@@ -199,11 +199,18 @@ function render(){
  $("#gradeComms").onclick=function(){var text=$("#practiceAnswer").value;state.answers[a]=text;state.scores[a]=grade(a,text);save();render();CO.toast("Audience explanation scored "+state.scores[a].score+"%");};
  $("#loadModel").onclick=function(){$("#practiceAnswer").value=talk(a,c,"90");};
 }
+function addLabShortcut(){
+ var bar=$(".lab-command-actions");if(!bar||$("#stakeholderShortcut"))return;
+ var b=document.createElement("button");b.id="stakeholderShortcut";b.className="secondary-btn";b.textContent="Explain to stakeholder";
+ b.onclick=function(){CO.setView("stakeholder");$("#pageTitle").textContent="Stakeholder Room";state.context="active";save();render();};
+ bar.appendChild(b);
+}
 function install(){
  var nav=$("#nav"),work=$("#workspace");if(!nav||!work)return;
  var b=document.createElement("button");b.className="nav-item";b.dataset.view="stakeholder";b.innerHTML="<span>☍</span><b>Stakeholder Room</b><em>14</em>";
  b.onclick=function(){CO.setView("stakeholder");$("#pageTitle").textContent="Stakeholder Room";render();};nav.appendChild(b);
- var sec=document.createElement("section");sec.className="view";sec.id="view-stakeholder";work.appendChild(sec);render();
+ var sec=document.createElement("section");sec.className="view";sec.id="view-stakeholder";work.appendChild(sec);render();addLabShortcut();
+ new MutationObserver(function(){addLabShortcut();}).observe(document.body,{childList:true,subtree:true});
 }
 install();
 })();
