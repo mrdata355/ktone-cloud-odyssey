@@ -32,11 +32,7 @@ function duplicateIds(){
 function actionable(button){
  if(typeof button.onclick==="function")return true;
  if(button.type==="submit")return true;
- for(var i=0;i<knownDataActions.length;i++){
-   var attr="data-"+knownDataActions[i].replace(/[A-Z]/g,function(m){return "-"+m.toLowerCase();});
-   if(button.hasAttribute(attr))return true;
- }
- if(button.closest&&button.closest("#odysseyCommandPalette,#odysseyMissionDock,#odysseyHealth"))return true;
+ if(button.matches&&button.matches("[data-rich-action]"))return true;
  return false;
 }
 function checkControls(){
@@ -95,14 +91,15 @@ function checkModules(){
   ["Coding Forge",!!$("#view-coding-forge")],
   ["Pattern Match",!!$("#view-pattern-match")],
   ["Adaptive Ladder",!!$("#view-adaptive-ladder")],
-  ["AWS + GCP Forge",!!$("#view-cloud-forge")]
+  ["AWS + GCP Forge",!!$("#view-cloud-forge")],
+  ["Button & Backend Map",!!$("#view-action-map")]
  ];
  return expected;
 }
 function checkAssets(){
  var required=[
   "app.js","enterprise.js","reasoning.js","communications.js","speaking.js","elite.js",
-  "coding_forge.js","adaptive_ladder.js","cloud_forge.js","ultra_ui.js","qa_harness.js"
+  "coding_forge.js","adaptive_ladder.js","cloud_forge.js","ultra_ui.js","qa_harness.js","action_map.js"
  ];
  var loaded=$$("script[src]").map(function(s){return (s.getAttribute("src")||"").split("/").pop();});
  return required.map(function(x){return {asset:x,ok:loaded.indexOf(x)>=0};});
