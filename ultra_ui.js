@@ -32,6 +32,7 @@ var viewMeta={
  backend:{title:"Backend Control Plane",icon:"⬡",group:"Platform Engineering",desc:"Real Vercel APIs, Postgres contracts, verification and observability"},
  "backend-forge":{title:"Backend Systems Forge",icon:"⚙",group:"Platform Engineering",desc:"Staff/principal distributed backend architecture and failure semantics"},
  graduation:{title:"Graduation Gate",icon:"◈",group:"Live Readiness",desc:"Mandatory simulation graduation before any live connector access"},
+ roadmap:{title:"Product → Business Roadmap",icon:"%",group:"Product Management",desc:"Weighted technical, commercial and scale-readiness roadmap"},
  sardine:{title:"Sardine Mission Forge",icon:"◉",group:"Role Campaigns",desc:"Senior fraud data/ML pipelines, Chronon, GCP, modeling, incidents and stakeholder defense"}
 };
 
