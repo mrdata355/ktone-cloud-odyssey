@@ -2,7 +2,7 @@
 "use strict";
 if(!window.CloudOdyssey)return;
 var CO=window.CloudOdyssey,D=document,$=function(s,r){return (r||D).querySelector(s);};
-var state={health:null,me:null,workOrders:[],error:null,loading:false};
+var state={health:null,me:null,schema:null,workOrders:[],error:null,loading:false};
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function badge(ok,yes,no){return '<span class="acct-badge '+(ok?"ok":"pending")+'">'+esc(ok?yes:no)+'</span>';}
 async function refresh(){
@@ -11,6 +11,7 @@ async function refresh(){
  try{
    state.health=await api.health(true);
    state.me=await api.me();
+   if(state.health.persistence&&state.health.persistence.ok&&api.schemaStatus){try{state.schema=await api.schemaStatus();}catch(e){state.schema={ready:false,error:e.message};}}else state.schema=null;
    if(state.health.capabilities&&state.health.capabilities.durable_work_orders){
      try{var w=await api.loadWorkOrders();state.workOrders=w.work_orders||[];}catch(e){state.workOrders=[];}
    }
@@ -35,11 +36,11 @@ function exportRecovery(){
 function render(){
  var root=$("#view-account-sync");if(!root)return;
  var h=state.health||{},me=state.me||{},auth=me.auth||h.auth||{},caps=h.capabilities||{},p=h.persistence||{};
- var authed=!!auth.authenticated,db=!!(p.configured&&p.ok),sign=!!(h.verification&&h.verification.assessment_signing);
+ var authed=!!auth.authenticated,db=!!(p.configured&&p.ok),schemaReady=!!(state.schema&&state.schema.ready),sign=!!(h.verification&&h.verification.assessment_signing);
  root.innerHTML='<div class="view-heading"><div><span class="micro">IDENTITY • PERSISTENCE • RECOVERY</span><h2>Account & Sync</h2><p>One place to verify whether Cloud Odyssey is merely running, actually durable, authenticated, and producing verifiable evidence.</p></div><span class="enterprise-badge">'+(state.loading?"CHECKING":authed?"AUTHENTICATED":"GUEST MODE")+'</span></div>'+
  '<div class="acct-grid">'+
   '<article class="acct-card glass"><div><span>CONTROL PLANE</span><h3>Backend API</h3></div>'+badge(!!h.ok,"ONLINE","UNKNOWN")+'<p>Server grading, mission sessions, recommendations and artifact verification.</p></article>'+
-  '<article class="acct-card glass"><div><span>DURABILITY</span><h3>Postgres</h3></div>'+badge(db,"DURABLE","NOT CONNECTED")+'<p>'+(db?("Database "+esc(p.database||"connected")+" is responding."):"DATABASE_URL is not active in this deployment; browser state remains the recovery source.")+'</p></article>'+
+  '<article class="acct-card glass"><div><span>DURABILITY</span><h3>Postgres + schema</h3></div>'+badge(db&&schemaReady,"READY",db?"MIGRATION NEEDED":"NOT CONNECTED")+'<p>'+(db?(schemaReady?("Database "+esc(p.database||"connected")+" + SaaS schema ready."):("Database responds, but schema is incomplete: "+esc((state.schema&&state.schema.tables&&state.schema.tables.missing||[]).join(", ")||"check migration"))):"DATABASE_URL is not active in this deployment; browser state remains the recovery source.")+'</p></article>'+
   '<article class="acct-card glass"><div><span>IDENTITY</span><h3>Authentication</h3></div>'+badge(authed,"SIGNED IN",auth.configured?"TOKEN REQUIRED":"NOT CONFIGURED")+'<p>'+(authed?("User "+esc(auth.email||auth.user_id||"authenticated")+" • tenant "+esc(auth.tenant_id||"personal")):(auth.configured?"JWT verification is configured, but this browser has no authenticated session.":"JWT/Neon Auth public configuration has not been attached to Vercel yet."))+'</p></article>'+
   '<article class="acct-card glass"><div><span>PROVENANCE</span><h3>Assessment signing</h3></div>'+badge(sign,"SIGNED","UNSIGNED")+'<p>'+(sign?"Assessment receipts are cryptographically signed.":"ASSESSMENT_SIGNING_SECRET is not configured; receipts are server-issued but unsigned.")+'</p></article>'+
  '</div>'+
