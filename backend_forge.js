@@ -90,6 +90,6 @@ function install(){
  var b=document.createElement("button");b.className="nav-item";b.dataset.view="backend-forge";b.innerHTML="<span>⚙</span><b>Backend Systems Forge</b><em>23</em>";b.onclick=()=>{CO.setView("backend-forge");$("#pageTitle").textContent="Backend Systems Forge";render();};nav.appendChild(b);
  var sec=document.createElement("section");sec.className="view";sec.id="view-backend-forge";work.appendChild(sec);render();
 }
-window.CloudOdysseyBackendForge={projects:projects,getState:()=>st};
+window.CloudOdysseyBackendForge={projects:projects,getState:()=>st,render:render};
 install();
 })();
