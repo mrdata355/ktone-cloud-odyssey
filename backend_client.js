@@ -50,11 +50,11 @@ function collectSignals(){
   var backendGrades=Object.values(backendForge.grades||{}).reduce(function(n,x){return n+(Number(x)||0);},0);
   signals.backend=Math.min(100,Math.round(backendChecks/144*55+(backendGrades/(12*100))*45));
   var sardine=parseStore("cloud_odyssey_sardine_forge_v1");
-  var sTasks=Object.values(sardine.checks||{}).filter(Boolean).length/322*55;
-  var sDef=Object.values(sardine.defense||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(23*100)*20;
-  var sMock=Object.values(sardine.mock||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(23*100)*10;
-  var sInc=Object.values(sardine.incident||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(23*100)*10;
-  var sStar=Object.values(sardine.star||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(23*100)*5;
+  var sTasks=Object.values(sardine.checks||{}).filter(Boolean).length/350*55;
+  var sDef=Object.values(sardine.defense||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(25*100)*20;
+  var sMock=Object.values(sardine.mock||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(25*100)*10;
+  var sInc=Object.values(sardine.incident||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(25*100)*10;
+  var sStar=Object.values(sardine.star||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(25*100)*5;
   var sCore=sTasks+sDef+sMock+sInc+sStar;
   var sPattern=sardine.pattern&&sardine.pattern.total?Number(sardine.pattern.right||0)/Number(sardine.pattern.total)*100:0;
   var sVocab=Object.values(sardine.vocab||{}).filter(Boolean).length/60*100;
