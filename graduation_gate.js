@@ -45,9 +45,9 @@ function render(){
  $$("[data-grad-filter]").forEach(b=>b.onclick=()=>{filter=b.dataset.gradFilter;render();});
  $$("[data-grad-open]").forEach(b=>b.onclick=()=>{
    if(b.dataset.gradOpen==="cloud"){
-     var st=read("cloud_odyssey_cloud_forge_v1");st.provider=b.dataset.gradProvider;st.project=+b.dataset.gradIndex;st.mode="simulation";localStorage.setItem("cloud_odyssey_cloud_forge_v1",JSON.stringify(st));CO.setView("cloud-forge");$("#pageTitle").textContent="Cloud + Lakehouse Project Forge";window.CloudOdysseyCloudForge&&window.CloudOdysseyCloudForge.render?window.CloudOdysseyCloudForge.render():location.reload();
+     var st=read("cloud_odyssey_cloud_forge_v1");st.provider=b.dataset.gradProvider;st.project=+b.dataset.gradIndex;st.mode="simulation";localStorage.setItem("cloud_odyssey_cloud_forge_v1",JSON.stringify(st));CO.setView("cloud-forge");$("#pageTitle").textContent="Cloud + Lakehouse Project Forge";if(window.CloudOdysseyCloudForge&&window.CloudOdysseyCloudForge.render)window.CloudOdysseyCloudForge.render();
    }else{
-     var st=read("cloud_odyssey_backend_forge_v1");st.project=+b.dataset.gradIndex;st.mode="simulation";localStorage.setItem("cloud_odyssey_backend_forge_v1",JSON.stringify(st));CO.setView("backend-forge");$("#pageTitle").textContent="Backend Systems Forge";location.reload();
+     var st=read("cloud_odyssey_backend_forge_v1");st.project=+b.dataset.gradIndex;st.mode="simulation";localStorage.setItem("cloud_odyssey_backend_forge_v1",JSON.stringify(st));CO.setView("backend-forge");$("#pageTitle").textContent="Backend Systems Forge";if(window.CloudOdysseyBackendForge&&window.CloudOdysseyBackendForge.render)window.CloudOdysseyBackendForge.render();
    }
  });
 }
