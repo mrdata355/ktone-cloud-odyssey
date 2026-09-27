@@ -26,7 +26,10 @@ async function health(force){
 }
 function avg(xs){return xs.length?Math.round(xs.reduce(function(a,b){return a+b;},0)/xs.length):0;}
 function collectSignals(){
-  var signals={coding:0,transfer:0,recovery:0,vocab:0,star:0,aws:0,gcp:0,azure:0,databricks:0,snowflake:0,stakeholder:0,backend:0,sardine:0};
+  var signals={missions:0,projects:0,coding:0,transfer:0,recovery:0,vocab:0,star:0,aws:0,gcp:0,azure:0,databricks:0,snowflake:0,stakeholder:0,backend:0,sardine:0};
+  var base=parseStore("cloud_odyssey_enterprise_v3");
+  signals.missions=Math.min(100,Math.round(Object.values(base.done||{}).filter(Boolean).length/30*100));
+  signals.projects=Math.min(100,Math.round(Object.values(base.checks||{}).filter(Boolean).length/60*100));
   var forge=parseStore("cloud_odyssey_coding_forge_v1");
   if(Array.isArray(forge.attempts)&&forge.attempts.length)signals.coding=avg(forge.attempts.slice(-25).map(function(x){return Number(x.score)||0;}));
   var ladder=parseStore("cloud_odyssey_ladder_v1");
@@ -76,6 +79,26 @@ async function startMission(input){
     source:"mission-control"
   },input)});
 }
+async function runMissionTests(input){
+  input=input||{};
+  return request("mission-tests/run",{method:"POST",body:{
+    client_id:state.client_id,
+    mission_id:input.mission_id,
+    solution:input.solution
+  }});
+}
+async function gradeMission(input){
+  input=input||{};
+  return request("missions/grade",{method:"POST",body:{
+    client_id:state.client_id,
+    tenant_id:"personal",
+    mission_id:input.mission_id,
+    solution:input.solution,
+    session_id:input.session_id||null,
+    reveal_used:!!input.reveal_used,
+    duration_ms:Number(input.duration_ms)||0
+  }});
+}
 async function connectorStatus(){return request("connectors/status");}
 async function recommendations(budget){return request("recommendations",{method:"POST",body:{signals:collectSignals(),budget_minutes:budget||45}});}
 async function grade(answer,required,meta){
@@ -103,7 +126,7 @@ async function syncProgress(){
 async function saveEvidence(input){
   return request("evidence",{method:"POST",body:Object.assign({client_id:state.client_id,tenant_id:"personal"},input)});
 }
-window.CloudOdysseyBackend={request:request,health:health,startMission:startMission,connectorStatus:connectorStatus,recommendations:recommendations,grade:grade,emit:emit,syncProgress:syncProgress,saveEvidence:saveEvidence,collectSignals:collectSignals,clientId:function(){return state.client_id;}};
+window.CloudOdysseyBackend={request:request,health:health,startMission:startMission,runMissionTests:runMissionTests,gradeMission:gradeMission,connectorStatus:connectorStatus,recommendations:recommendations,grade:grade,emit:emit,syncProgress:syncProgress,saveEvidence:saveEvidence,collectSignals:collectSignals,clientId:function(){return state.client_id;}};
 health().then(function(h){
   var sync=document.querySelector(".sidebar-footer .sync span");
   if(sync)sync.textContent=h.ok?(h.persistence&&h.persistence.ok?"Backend + Postgres online":"Backend API online • persistence pending"):"Backend unreachable • local mode";
