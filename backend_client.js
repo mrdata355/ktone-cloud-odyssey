@@ -26,7 +26,7 @@ async function health(force){
 }
 function avg(xs){return xs.length?Math.round(xs.reduce(function(a,b){return a+b;},0)/xs.length):0;}
 function collectSignals(){
-  var signals={coding:0,transfer:0,recovery:0,vocab:0,star:0,aws:0,gcp:0,azure:0,databricks:0,snowflake:0,stakeholder:0};
+  var signals={coding:0,transfer:0,recovery:0,vocab:0,star:0,aws:0,gcp:0,azure:0,databricks:0,snowflake:0,stakeholder:0,backend:0,sardine:0};
   var forge=parseStore("cloud_odyssey_coding_forge_v1");
   if(Array.isArray(forge.attempts)&&forge.attempts.length)signals.coding=avg(forge.attempts.slice(-25).map(function(x){return Number(x.score)||0;}));
   var ladder=parseStore("cloud_odyssey_ladder_v1");
@@ -49,6 +49,16 @@ function collectSignals(){
   var backendChecks=Object.values(backendForge.checks||{}).filter(Boolean).length;
   var backendGrades=Object.values(backendForge.grades||{}).reduce(function(n,x){return n+(Number(x)||0);},0);
   signals.backend=Math.min(100,Math.round(backendChecks/144*55+(backendGrades/(12*100))*45));
+  var sardine=parseStore("cloud_odyssey_sardine_forge_v1");
+  var sTasks=Object.values(sardine.checks||{}).filter(Boolean).length/322*55;
+  var sDef=Object.values(sardine.defense||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(23*100)*20;
+  var sMock=Object.values(sardine.mock||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(23*100)*10;
+  var sInc=Object.values(sardine.incident||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(23*100)*10;
+  var sStar=Object.values(sardine.star||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(23*100)*5;
+  var sCore=sTasks+sDef+sMock+sInc+sStar;
+  var sPattern=sardine.pattern&&sardine.pattern.total?Number(sardine.pattern.right||0)/Number(sardine.pattern.total)*100:0;
+  var sVocab=Object.values(sardine.vocab||{}).filter(Boolean).length/60*100;
+  signals.sardine=Math.min(100,Math.round(sCore*.9+sPattern*.05+sVocab*.05));
   var comm=parseStore("cloud_odyssey_comms_v1");
   if(comm.scores){signals.stakeholder=avg(Object.values(comm.scores).map(function(x){return Number(x&&x.score)||0;}));}
   var speaking=parseStore("cloud_odyssey_speaking_v1");
