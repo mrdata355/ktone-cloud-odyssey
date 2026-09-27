@@ -19,7 +19,9 @@ module.exports=api(async(req,res,ctx)=>{
       adaptive_recommendations:true,
       durable_progress:database.configured&&database.ok,
       durable_events:database.configured&&database.ok,
-      evidence_provenance:database.configured&&database.ok
+      evidence_provenance:database.configured&&database.ok,
+      connector_registry:true,
+      live_connector_gating:true
     }
   }};
 },{methods:["GET"]});
