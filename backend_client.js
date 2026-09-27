@@ -13,10 +13,22 @@ function parseStore(key){try{return JSON.parse(localStorage.getItem(key)||"{}");
 function accessToken(){try{return sessionStorage.getItem(TOKEN_KEY)||"";}catch(e){return "";}}
 function setAccessToken(token){try{if(token)sessionStorage.setItem(TOKEN_KEY,String(token));else sessionStorage.removeItem(TOKEN_KEY);}catch(e){}state.health=null;state.health_at=0;save();}
 function clearAccessToken(){setAccessToken("");}
+async function rawAuthSession(){
+  var headers={"Content-Type":"application/json","X-Client-Id":state.client_id};
+  var res=await fetch("/api/v1/auth/session",{method:"GET",headers:headers,credentials:"same-origin"});
+  var data={};try{data=await res.json();}catch(e){data={};}
+  if(res.ok&&data&&data.access_token){setAccessToken(data.access_token);return true;}
+  clearAccessToken();return false;
+}
 async function request(path,opts){
   opts=opts||{};
-  var headers=Object.assign({"Content-Type":"application/json","X-Client-Id":state.client_id},opts.headers||{});var tok=accessToken();if(tok)headers.Authorization="Bearer "+tok;
+  var headers=Object.assign({"Content-Type":"application/json","X-Client-Id":state.client_id},opts.headers||{});
+  var tok=accessToken();if(tok)headers.Authorization="Bearer "+tok;
   var res=await fetch("/api/v1/"+path,{method:opts.method||"GET",headers:headers,credentials:"same-origin",body:opts.body===undefined?undefined:JSON.stringify(opts.body)});
+  if(res.status===401&&!opts._retried&&path.indexOf("auth/")!==0){
+    var refreshed=false;try{refreshed=await rawAuthSession();}catch(e){}
+    if(refreshed)return request(path,Object.assign({},opts,{_retried:true}));
+  }
   var data={};try{data=await res.json();}catch(e){data={ok:false,error:{message:"Invalid API response"}};}
   data.http_status=res.status;data.request_id=data.request_id||res.headers.get("x-request-id");
   if(!res.ok)throw Object.assign(new Error((data.error&&data.error.message)||"API request failed"),{status:res.status,data:data});
@@ -117,9 +129,9 @@ async function verifyArtifact(input){
 }
 async function authSession(){
   try{
-    var r=await request("auth/session");
-    if(r&&r.access_token)setAccessToken(r.access_token);else clearAccessToken();
-    return r;
+    var ok=await rawAuthSession();
+    if(!ok)throw new Error("No active authentication session");
+    return {ok:true,access_token:accessToken()};
   }catch(e){clearAccessToken();throw e;}
 }
 async function authSignIn(email,password){
