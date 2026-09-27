@@ -22,9 +22,9 @@ var actions=[
 ["Cloud Lab","Brief / Architecture / Acceptance / Business","local","Switches the mission-side explanation panel.","Local UI only.","good"],
 ["Cloud Lab","solution.py / tests.py / pipeline.yaml","local","Switches between separate editor buffers.","Browser memory only; FIXED in current build.","good"],
 ["Cloud Lab","Format","browser","Formats the currently open editor buffer.","Runs in browser only.","good"],
-["Cloud Lab","Run tests","sim","Runs the mission's heuristic token/contract checks and writes runtime-log output.","Simulation/local grader; does not execute your production code on a server.","warn"],
+["Cloud Lab","Run tests","external","POSTs solution text to the deployed mission contract runner and returns run_id, request_id, code hash and four server-side test gates.","REAL Vercel Function. It executes Cloud Odyssey's deterministic contract harness, not unrestricted Python/Spark/SQL infrastructure.","good"],
 ["Cloud Lab","Reveal solution","local","Loads the reference solution into solution.py and records that it was revealed.","LocalStorage/browser only.","good"],
-["Cloud Lab","Grade mission","local","Scores four local production gates and can mark the mission mastered.","Local heuristic grading + LocalStorage.","warn"],
+["Cloud Lab","Grade mission","external","POSTs the solution to the authoritative mission grader; only a server-mastered result can award mastery/XP.","REAL Vercel Function. Assessment persistence needs DATABASE_URL; receipt signing needs ASSESSMENT_SIGNING_SECRET.","good"],
 ["Cloud Lab","clear runtime logs","local","Clears the visible log panel.","Browser UI only.","good"],
 ["Cloud Lab","Run cell","sim","Displays a simulated validation result for the mission notebook.","Hard-coded simulation; no Databricks backend.","warn"],
 ["Incident War Room","Generate incident","sim","Creates a new randomized incident scenario.","Local simulation only.","good"],
@@ -167,7 +167,9 @@ function classifyButton(b){
  if(/runPython|runSql/.test(id))return ["BROWSER EXECUTION","Python/SQLite executes locally in Pyodide."];
  if(/loadMonaco/.test(id))return ["BROWSER EXECUTION","Monaco loads from CDN into this browser."];
  if(/voice|dictate/i.test(id+txt))return ["DEVICE API","Uses browser speech/microphone support when available."];
- if(/cloudRun|simHealthy|simFault|simRecover|runNotebook|runCode/.test(id))return ["SIMULATION","No production/cloud backend was called."];
+ if(/runCode/.test(id))return ["REAL SERVER","POSTs the active solution to /api/v1/mission-tests/run and returns a server test receipt."];
+ if(/submitLab/.test(id))return ["REAL SERVER","POSTs the active solution to /api/v1/missions/grade; server result controls mastery/XP."];
+ if(/cloudRun|simHealthy|simFault|simRecover|runNotebook/.test(id))return ["SIMULATION","No production/cloud backend was called."];
  if(/gradeSDefense|gradeSMock|gradeSIncident|gradeSStar/.test(id))return ["REAL SERVER","Cloud Odyssey grading API was called server-side."];
  if(/sconnector/.test(id))return ["REAL BACKEND","Connector registry was checked; no provider mutation was executed."];
  if(/printPortfolio/.test(id))return ["BROWSER API","Opened browser print/save flow."];
