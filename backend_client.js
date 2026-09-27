@@ -34,11 +34,21 @@ function collectSignals(){
   var cloud=parseStore("cloud_odyssey_cloud_forge_v1");
   var counts={aws:12,gcp:12,azure:8,databricks:8,snowflake:8};
   Object.keys(counts).forEach(function(k){
-    var done=Object.keys(cloud.checks||{}).filter(function(x){return x.indexOf(k+"-")===0&&cloud.checks[x];}).length;
-    var score=Math.round(done/(counts[k]*12)*85);
-    var ev=Object.keys(cloud.evidence||{}).filter(function(x){return x.indexOf(k+"-")===0&&String(cloud.evidence[x]||"").trim().length>30;}).length;
-    signals[k]=Math.min(100,score+Math.round(ev/counts[k]*15));
+    var projectCount=counts[k],checks=cloud.checks||{},grades=cloud.simGrades||{},evidence=cloud.evidence||{};
+    var done=Object.keys(checks).filter(function(x){return x.indexOf(k+"-")===0&&checks[x];}).length;
+    var gradeKeys=Object.keys(grades).filter(function(x){return x.indexOf(k+"-")===0;});
+    var gradeTotal=gradeKeys.reduce(function(n,x){return n+Math.min(100,Number(grades[x])||0);},0);
+    var liveEvidence=Object.keys(evidence).filter(function(projectKey){
+      if(projectKey.indexOf(k+"-")!==0||String(evidence[projectKey]||"").trim().length<=30)return false;
+      var stageDone=Object.keys(checks).filter(function(x){return x.indexOf(projectKey+"-")===0&&checks[x];}).length;
+      return stageDone===12&&(Number(grades[projectKey])||0)>=85;
+    }).length;
+    signals[k]=Math.min(100,Math.round(done/(projectCount*12)*70+(gradeTotal/(projectCount*100))*15+(liveEvidence/projectCount)*15));
   });
+  var backendForge=parseStore("cloud_odyssey_backend_forge_v1");
+  var backendChecks=Object.values(backendForge.checks||{}).filter(Boolean).length;
+  var backendGrades=Object.values(backendForge.grades||{}).reduce(function(n,x){return n+(Number(x)||0);},0);
+  signals.backend=Math.min(100,Math.round(backendChecks/144*55+(backendGrades/(12*100))*45));
   var comm=parseStore("cloud_odyssey_comms_v1");
   if(comm.scores){signals.stakeholder=avg(Object.values(comm.scores).map(function(x){return Number(x&&x.score)||0;}));}
   var speaking=parseStore("cloud_odyssey_speaking_v1");
