@@ -172,7 +172,7 @@ function renderMissions(){
 
 function openMission(wi,mi){
   const w=worlds[wi],m=w&&w.missions&&w.missions[mi],id=missionId(wi,mi);
-  state.active={w:wi,m:mi,mission_id:id,server_status:'starting'};save();
+  state.active={w:wi,m:mi,mission_id:id,server_status:'starting',started_at_ms:Date.now()};save();
   loadLab(wi,mi);setView('lab');
 
   const api=window.CloudOdysseyBackend;
@@ -285,44 +285,161 @@ function renderPipeline(wi,mi){
 }
 function resetTests(m){
   $('#testSummary').textContent='0/4';
-  const names=['contract_or_grain','deterministic_retry','observable_failure','business_validation'];
+  const names=['mission_contract','executable_shape','production_control','completeness'];
   $('#testResults').innerHTML=names.map(function(n){return '<div class="test-row"><span>○</span><span>'+n+'</span><b>WAIT</b></div>';}).join('');
 }
-function gradeCurrent(){
-  if(!state.active)return;
-  const wi=state.active.w,mi=state.active.m,w=worlds[wi],m=w.missions[mi],id=missionId(wi,mi);
-  saveActiveEditor();const text=(editorFiles['solution.py']||'').toLowerCase();
+function renderServerTests(tests){
+  tests=Array.isArray(tests)?tests:[];
+  $('#testSummary').textContent=tests.filter(function(t){return t.pass;}).length+'/'+tests.length;
+  $('#testResults').innerHTML=tests.map(function(t){
+    return '<div class="test-row '+(t.pass?'pass':'fail')+'"><span>'+(t.pass?'✓':'×')+'</span><span>'+esc(t.name)+'</span><b>'+(t.pass?'PASS':'FAIL')+'</b></div>';
+  }).join('');
+}
+function localPreview(m,text){
+  text=String(text||'').toLowerCase();
   const tokenPass=m.tokens.map(function(t){return text.indexOf(t.toLowerCase())>=0;});
   const genericPass=[/validate|test|assert|quality/.test(text),/alert|log|monitor|slo|trace|quarantine/.test(text),/rollback|idempot|replay|merge|checkpoint|version/.test(text)];
-  const score=[
+  return [
     tokenPass.filter(Boolean).length>=Math.min(2,m.tokens.length),
-    genericPass[2]||tokenPass.length===1,
-    genericPass[0]&&genericPass[1],
-    text.length>80
+    genericPass[2]||tokenPass.filter(Boolean).length>=1,
+    genericPass[0]||genericPass[1],
+    text.length>80&&!/\b(todo|pass)\b/.test(text)
   ];
-  state.attempts++;const passed=score.filter(Boolean).length;
-  if(passed===4){state.streak=(state.streak||0)+1;state.bestStreak=Math.max(state.bestStreak||0,state.streak);if(!state.done[id]){state.done[id]=true;state.xp+=200;toast('Mission mastered • +200 XP');}else toast('Mission revalidated successfully');}
-  else{state.streak=0;toast('Autograder: '+passed+'/4 passed — keep iterating');}
-  logAttempt(id,'Grade '+passed+'/4');
-  renderTestResults(score);
-  $('#labState').textContent=state.done[id]?'MASTERED':passed+'/4 TESTS';
-  appendLog('autograder completed: '+passed+'/4 production gates passed');
-  renderHUD();save();
+}
+async function gradeCurrent(){
+  if(!state.active)return;
+  const wi=state.active.w,mi=state.active.m,w=worlds[wi],m=w.missions[mi],id=missionId(wi,mi);
+  saveActiveEditor();
+  const solution=editorFiles['solution.py']||'';
+  const api=window.CloudOdysseyBackend;
+  state.attempts++;
+  appendLog('submitting mission to authoritative server grader...');
+
+  if(!api||!api.gradeMission){
+    const preview=localPreview(m,solution),passed=preview.filter(Boolean).length;
+    state.streak=0;
+    logAttempt(id,'LOCAL FALLBACK grade '+passed+'/4');
+    renderTestResults(preview);
+    $('#labState').textContent='LOCAL PREVIEW '+passed+'/4';
+    appendLog('LOCAL FALLBACK only — backend grader unavailable; mastery/XP not awarded');
+    toast('Local preview only • no verified mastery');
+    renderHUD();save();
+    return;
+  }
+
+  try{
+    const history=state.history[id]||[];
+    const revealUsed=history.some(function(x){return x&&x.label==='Solution revealed';});
+    const r=await api.gradeMission({
+      mission_id:id,
+      solution:solution,
+      session_id:state.active.session_id||null,
+      reveal_used:revealUsed,
+      duration_ms:Math.max(0,Date.now()-(state.active.started_at_ms||Date.now()))
+    });
+
+    state.active.server_grade={
+      attempt_id:r.attempt_id,
+      request_id:r.request_id,
+      score:r.score,
+      mastered:!!r.mastered,
+      persistence:r.persistence||null,
+      verification:r.verification||'unsigned'
+    };
+
+    if(r.mastered){
+      state.streak=(state.streak||0)+1;
+      state.bestStreak=Math.max(state.bestStreak||0,state.streak);
+      if(!state.done[id]){
+        state.done[id]=true;
+        state.xp+=200;
+        toast('SERVER VERIFIED • Mission mastered • +200 XP');
+      }else{
+        toast('SERVER VERIFIED • Mission revalidated');
+      }
+    }else{
+      state.streak=0;
+      toast('Server grade '+r.score+'% • keep iterating');
+    }
+
+    logAttempt(id,'SERVER grade '+r.score+'%'+(r.mastered?' MASTERED':''));
+    renderServerTests(r.tests||[]);
+    $('#labState').textContent=r.mastered?'MASTERED • SERVER':'SERVER '+r.score+'%';
+    appendLog('REAL SERVER grade: '+r.score+'% • attempt '+String(r.attempt_id||'').slice(0,8)+' • request '+String(r.request_id||'').slice(0,8));
+    appendLog('verification: '+(r.verification||'unsigned')+' • assessment persistence: '+((r.persistence&&r.persistence.saved)?'SAVED':'NOT PERSISTED'));
+    renderHUD();save();
+
+    if(api.syncProgress){
+      try{
+        const sync=await api.syncProgress();
+        state.active.progress_sync={
+          request_id:sync.request_id||null,
+          persisted:!!(sync.snapshot||sync.persistence),
+          message:sync.message||null
+        };
+        save();
+        if(sync.snapshot)appendLog('progress snapshot persisted • version '+sync.snapshot.version+' • request '+String(sync.request_id||'').slice(0,8));
+        else appendLog('progress sync not persisted • '+(sync.message||'DATABASE_URL required'));
+      }catch(syncErr){
+        appendLog('progress sync failed • '+syncErr.message);
+      }
+    }
+  }catch(e){
+    const preview=localPreview(m,solution),passed=preview.filter(Boolean).length;
+    state.streak=0;
+    logAttempt(id,'LOCAL FALLBACK after server error '+passed+'/4');
+    renderTestResults(preview);
+    $('#labState').textContent='LOCAL PREVIEW '+passed+'/4';
+    appendLog('server grade failed: '+e.message);
+    appendLog('LOCAL FALLBACK only — mastery/XP not awarded');
+    toast('Server unavailable • local preview only');
+    renderHUD();save();
+  }
 }
 function renderTestResults(score){
-  const names=['contract_or_grain','deterministic_retry','observable_failure','business_validation'];
+  const names=['mission_contract','executable_shape','production_control','completeness'];
   $('#testSummary').textContent=score.filter(Boolean).length+'/4';
   $('#testResults').innerHTML=names.map(function(n,i){const p=score[i];return '<div class="test-row '+(p?'pass':'fail')+'"><span>'+(p?'✓':'×')+'</span><span>'+n+'</span><b>'+(p?'PASS':'FAIL')+'</b></div>';}).join('');
 }
-function runTestsOnly(){
+async function runTestsOnly(){
   if(!state.active)return;
-  const wi=state.active.w,mi=state.active.m,m=worlds[wi].missions[mi],text=$('#codeEditor').value.toLowerCase();
-  const found=m.tokens.filter(function(t){return text.indexOf(t.toLowerCase())>=0;});
-  appendLog('running unit + contract tests...');
-  setTimeout(function(){
-    appendLog('recognized production signals: '+(found.join(', ')||'none yet'));
-    appendLog(found.length>=2?'test suite healthy — submit for full grading':'tests incomplete — add missing control patterns');
-  },180);
+  const wi=state.active.w,mi=state.active.m,m=worlds[wi].missions[mi],id=missionId(wi,mi);
+  saveActiveEditor();
+  const solution=editorFiles['solution.py']||'';
+  const api=window.CloudOdysseyBackend;
+  appendLog('submitting unit + contract checks to real server test runner...');
+
+  if(!api||!api.runMissionTests){
+    const preview=localPreview(m,solution);
+    renderTestResults(preview);
+    appendLog('LOCAL FALLBACK test preview — backend runner unavailable');
+    toast('Local test preview only');
+    return;
+  }
+
+  try{
+    const r=await api.runMissionTests({mission_id:id,solution:solution});
+    state.active.last_test={
+      run_id:r.run_id,
+      request_id:r.request_id,
+      score:r.score,
+      code_hash:r.code_hash,
+      execution_mode:r.execution_mode
+    };
+    save();
+    renderServerTests(r.tests||[]);
+    appendLog('REAL SERVER tests: '+r.passed+'/'+r.total+' • score '+r.score+'%');
+    appendLog('run '+String(r.run_id||'').slice(0,8)+' • request '+String(r.request_id||'').slice(0,8)+' • code '+String(r.code_hash||'').slice(0,12));
+    appendLog('mode: '+r.execution_mode+' • unrestricted user code execution: '+(r.arbitrary_code_execution?'YES':'NO'));
+    logAttempt(id,'SERVER tests '+r.passed+'/'+r.total);
+    toast('Server tests '+r.passed+'/'+r.total);
+  }catch(e){
+    const preview=localPreview(m,solution);
+    renderTestResults(preview);
+    appendLog('server test runner failed: '+e.message);
+    appendLog('LOCAL FALLBACK test preview only');
+    toast('Server test failed • local preview shown');
+  }
 }
 function appendLog(msg){const p=$('#runtimeLog');p.textContent+='\n['+new Date().toLocaleTimeString()+'] '+msg;p.scrollTop=p.scrollHeight;}
 function renderMLflow(wi,mi){
