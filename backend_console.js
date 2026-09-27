@@ -7,7 +7,7 @@ function pretty(x){return JSON.stringify(x,null,2);}
 function log(x){last=x;var el=$("#backendOutput");if(el)el.textContent=pretty(x);}
 function healthClass(h){return h&&h.ok?"good":"warn";}
 async function runHealth(){log({action:"GET /api/v1/health",state:"loading"});log(await B.health(true));render();}
-async function runPlan(){log({action:"POST /api/v1/recommendations",state:"loading"});try{log(await B.recommendations(45));}catch(e){log(e.data||{ok:false,error:e.message});}}
+async function runSmoke(){log({action:"GET /api/v1/smoke",state:"loading"});try{log(await B.request("smoke"));}catch(e){log(e.data||{ok:false,error:e.message});}}\nasync function runPlan(){log({action:"POST /api/v1/recommendations",state:"loading"});try{log(await B.recommendations(45));}catch(e){log(e.data||{ok:false,error:e.message});}}
 async function runGrade(){
  var text=$("#backendGradeText").value.trim();if(!text){CO.toast("Write an answer first");return;}
  log({action:"POST /api/v1/assessments/grade",state:"loading"});
@@ -19,7 +19,7 @@ async function runEvent(){log({action:"POST /api/v1/events",state:"loading"});tr
 function routes(){
  return [
   ["GET","/api/v1/health","Runtime + DB + signing health","REAL"],
-  ["GET","/api/v1/capabilities","Architecture/capability contract","REAL"],
+  ["GET","/api/v1/capabilities","Architecture/capability contract","REAL"],\n  ["GET","/api/v1/smoke","Server-side scoring/recommendation diagnostic","REAL"],
   ["POST","/api/v1/recommendations","Adaptive next-best-practice policy","REAL"],
   ["POST","/api/v1/assessments/grade","Server grading + receipt/hash","REAL"],
   ["POST","/api/v1/events","Idempotent append-only event store","DB"],
@@ -40,7 +40,7 @@ function render(){
   '<div class="backend-stat"><span>COMMIT</span><b>'+((hh&&hh.commit)||"—")+'</b></div>'+
   '<div class="backend-stat '+(hh&&hh.verification&&hh.verification.assessment_signing?"good":"warn")+'"><span>RECEIPTS</span><b>'+(hh&&hh.verification&&hh.verification.assessment_signing?"SIGNED":"UNSIGNED")+'</b></div>'+
   '<div class="backend-stat"><span>CLIENT</span><b>'+B.clientId().slice(0,8)+'</b></div></div>'+
-  '<div class="backend-actions"><button class="primary" id="backendHealth">↻ Refresh live backend</button><button id="backendPlan">✦ Generate adaptive plan</button><button id="backendSync">⇅ Sync proficiency snapshot</button><button id="backendEvent">＋ Emit idempotent event</button></div></aside>'+
+  '<div class="backend-actions"><button class="primary" id="backendHealth">↻ Refresh live backend</button><button id="backendSmoke">✓ Run server smoke test</button><button id="backendPlan">✦ Generate adaptive plan</button><button id="backendSync">⇅ Sync proficiency snapshot</button><button id="backendEvent">＋ Emit idempotent event</button></div></aside>'+
   '<section class="backend-main glass"><div class="backend-arch"><span class="micro">REFERENCE REQUEST PATH</span><div class="backend-flow">'+
   [['Browser','client + local evidence'],['Vercel Function','contract + request ID'],['Policy Engine','grade / recommend'],['Postgres','events + snapshots'],['Receipt','hash + HMAC']].map(function(x,i){return '<div class="backend-node"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>'+(i<4?'<div class="backend-arrow">→</div>':'');}).join("")+
   '</div></div><div class="backend-route-list">'+routes().map(function(r){return '<div class="backend-route"><code>'+r[0]+'</code><div><b>'+r[1]+'</b><span>'+r[2]+'</span></div><em>'+r[3]+'</em></div>';}).join("")+'</div>'+
@@ -55,7 +55,7 @@ function render(){
    ["Graceful capability degradation","Stateless grading/recommendations stay live even when persistence is not configured."]
   ].map(function(x){return '<div class="backend-pattern"><b>'+x[0]+'</b><p>'+x[1]+'</p></div>';}).join("")+'</div>'+
   '<div class="backend-test"><span class="micro">REAL SERVER-SIDE GRADING TEST</span><textarea id="backendGradeText">I would make the command idempotent because retries must converge on one business effect. I would preserve source evidence, reconcile counts and keys before publication, monitor an SLO, and keep a known-good rollback path. Instead of assuming job success means correctness, I would validate business state and least-privilege access.</textarea><button id="backendGrade">Grade on server + generate receipt</button></div></aside></div>';
-  $("#backendHealth").onclick=runHealth;$("#backendPlan").onclick=runPlan;$("#backendSync").onclick=runSync;$("#backendEvent").onclick=runEvent;$("#backendGrade").onclick=runGrade;
+  $("#backendHealth").onclick=runHealth;$("#backendSmoke").onclick=runSmoke;$("#backendPlan").onclick=runPlan;$("#backendSync").onclick=runSync;$("#backendEvent").onclick=runEvent;$("#backendGrade").onclick=runGrade;
  });
 }
 function install(){
