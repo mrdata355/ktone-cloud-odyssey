@@ -279,5 +279,21 @@ function install(){
  var sec=document.createElement("section");sec.className="view";sec.id="view-speaking";sec.innerHTML='<div class="view-heading"><div><span class="micro">SPEAKING FLUENCY LAB</span><h2>Vocabulary + STAR Exam</h2><p>Turn production terminology into language you can use naturally with interviewers, engineers, and stakeholders.</p></div><span class="enterprise-badge">"+vocab.length+" TERMS • "+stars.length+" STAR SCENARIOS</span></div><div class="speaking-shell"><aside class="speaking-sidebar glass" id="speakingSide"></aside><section class="speaking-main glass" id="speakingMain"></section><aside class="speaking-coach glass" id="speakingCoach"></aside></div>';work.appendChild(sec);
  renderAll();
 }
+window.CloudOdysseySpeaking={
+ stars:stars,
+ getState:function(){return st;},
+ launchStar:function(index){
+   st.mode="star";
+   st.starIndex=Math.max(0,Math.min(stars.length-1,Number(index)||0));
+   save();
+   CO.setView("speaking");
+   var t=$("#pageTitle");if(t)t.textContent="Vocabulary + STAR Speaking Lab";
+   renderAll();
+ },
+ launchVocab:function(category,mode){
+   st.mode="vocab";st.category=category||"all";st.vocabMode=mode||"natural";st.answered=false;save();
+   CO.setView("speaking");renderAll();
+ }
+};
 install();
 })();
