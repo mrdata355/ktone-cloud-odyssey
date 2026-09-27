@@ -94,7 +94,7 @@ function flow(pr){
 function mission(pr){
  return hero(pr,"END-TO-END PRODUCTION MISSION")+flow(pr)+
  '<div class="sardine-trade-grid"><div class="sardine-block"><b>REAL-TIME</b><p>'+esc(pr.stream)+'</p></div><div class="sardine-block"><b>BATCH / RECOMPUTE</b><p>'+esc(pr.batch)+'</p></div></div>'+
- '<div class="sardine-assignments">'+stages.map(function(x,i){return '<label class="sardine-assignment"><input type="checkbox" data-scheck="'+i+'" '+(st.checks[checkKey(pr,i)]?"checked":"")+'><div><b>'+String(i+1).padStart(2,"0")+'. '+x[0]+'</b><p>'+esc(detail(pr,i))+'</p></div><em>ASSIGN</em></label>';}).join("")+'</div>';
+ '<div class="sardine-assignments">'+stages.map(function(x,i){return '<label class="sardine-assignment"><input type="checkbox" data-scheck="'+i+'" disabled '+(st.checks[checkKey(pr,i)]?"checked":"")+'><div><b>'+String(i+1).padStart(2,"0")+'. '+x[0]+'</b><p>'+esc(detail(pr,i))+'</p></div><em>ASSIGN</em></label>';}).join("")+'</div>';
 }
 function fivew(pr){
  var vals=[["WHO",pr.who],["WHAT",pr.what],["WHERE",pr.where],["WHEN",pr.when],["WHY",pr.why5]];
@@ -167,7 +167,7 @@ function assignmentView(pr){
  var rows=[];
  projects.forEach(function(x,pi){stages.forEach(function(s,i){rows.push({pr:x,pi:pi,i:i,title:s[0],done:!!st.checks[checkKey(x,i)]});});});
  var shown=st.assignmentFilter==="all"?rows:rows.filter(function(x){return x.pi===st.project;});
- return hero(pr,"EXTENSIVE TASK ASSIGNMENTS")+'<div class="sardine-block"><button class="sardine-action" data-afilter="current">Current project</button> <button class="sardine-action" data-afilter="all">All 350 assignments</button><p>'+rows.filter(function(x){return x.done;}).length+'/350 complete. Every checkbox should correspond to an artifact, implementation, test, diagram, runbook or explanation you can defend.</p></div><div class="sardine-assignments">'+shown.map(function(x){return '<label class="sardine-assignment"><input type="checkbox" data-aproject="'+x.pi+'" data-astage="'+x.i+'" '+(x.done?"checked":"")+'><div><b>'+esc(x.pr.title)+' • '+String(x.i+1).padStart(2,"0")+' '+esc(x.title)+'</b><p>'+esc(detail(x.pr,x.i))+'</p></div><em>'+esc(x.pr.stack[0])+'</em></label>';}).join("")+'</div>';
+ return hero(pr,"EXTENSIVE TASK ASSIGNMENTS")+'<div class="sardine-block"><button class="sardine-action" data-afilter="current">Current project</button> <button class="sardine-action" data-afilter="all">All 350 assignments</button><p>'+rows.filter(function(x){return x.done;}).length+'/350 complete. Every checkbox should correspond to an artifact, implementation, test, diagram, runbook or explanation you can defend.</p></div><div class="sardine-assignments">'+shown.map(function(x){return '<label class="sardine-assignment"><input type="checkbox" data-aproject="'+x.pi+'" data-astage="'+x.i+'" disabled '+(x.done?"checked":"")+'><div><b>'+esc(x.pr.title)+' • '+String(x.i+1).padStart(2,"0")+' '+esc(x.title)+'</b><p>'+esc(detail(x.pr,x.i))+'</p></div><em>'+esc(x.pr.stack[0])+'</em></label>';}).join("")+'</div>';
 }
 function projectById(id){return projects.find(function(x){return x.id===id;});}
 function coverageScore(ids){
@@ -179,16 +179,17 @@ function coverageView(pr){
 }
 function liveView(pr){
  var ok=graduated(pr);
- return hero(pr,"LIVE PRACTICUM GATE")+'<div class="sardine-live '+(ok?"":"locked")+'"><span class="micro">'+(ok?"SIMULATION GRADUATED":"LIVE LOCKED")+'</span><h4>'+(ok?"GCP/provider phase unlocked":"Finish the simulation first")+'</h4><p>'+(ok?"This project may now move into the real-provider layer. Start read-only, then isolated sandbox execution. Connector credentials remain server-side.":"Complete all 14 assignments and score ≥85 on the blind defense. Mock, incident and STAR scores improve readiness but cannot bypass the gate.")+'</p><div class="sardine-role-kpis"><div class="sardine-kpi"><span>ASSIGNMENTS</span><b>'+completed(pr)+'/14</b></div><div class="sardine-kpi"><span>DEFENSE</span><b>'+g(st.defense,pr)+'%</b></div></div><button id="sconnector" class="sardine-action" '+(ok?"":"disabled")+'>Check '+pr.liveProvider.toUpperCase()+' connector</button><div id="sliveResult" class="sardine-result">$ no provider action executed</div></div>';
+ return hero(pr,"LIVE PRACTICUM GATE")+'<div class="sardine-live '+(ok?"":"locked")+'"><span class="micro">'+(ok?"SIMULATION GRADUATED":"LIVE LOCKED")+'</span><h4>'+(ok?"GCP/provider phase unlocked":"Finish the simulation first")+'</h4><p>'+(ok?"This project may now move into the real-provider layer. Start read-only, then isolated sandbox execution. Connector credentials remain server-side.":"Complete all 14 evidence-graded assignments, verify all 6 required project files, and score ≥85 on the blind defense. Mock, incident and STAR scores improve readiness but cannot bypass the gate.")+'</p><div class="sardine-role-kpis"><div class="sardine-kpi"><span>ASSIGNMENTS</span><b>'+completed(pr)+'/14</b></div><div class="sardine-kpi"><span>DEFENSE</span><b>'+g(st.defense,pr)+'%</b></div></div><button id="sconnector" class="sardine-action" '+(ok?"":"disabled")+'>Check '+pr.liveProvider.toUpperCase()+' connector</button><div id="sliveResult" class="sardine-result">$ no provider action executed</div></div>';
 }
 function proof(pr){
  var gates=[
-  ["End-to-end assignments",completed(pr)===14,completed(pr)+"/14","Artifacts across every production layer"],
+  ["End-to-end assignments",completed(pr)===14,completed(pr)+"/14","Evidence-graded work across every production layer"],
+  ["Project artifacts",verifiedArtifacts(pr)===6,verifiedArtifacts(pr)+"/6","Architecture, implementation, tests, reconciliation, monitoring and runbook verified"],
   ["Blind defense",g(st.defense,pr)>=85,g(st.defense,pr)+"%","Server grade ≥85"],
   ["Stakeholder mock",g(st.mock,pr)>=85,g(st.mock,pr)+"%","Translate across audiences"],
   ["Break/fix",g(st.incident,pr)>=85,g(st.incident,pr)+"%","Diagnose + recover"],
   ["STAR",g(st.star,pr)>=85,g(st.star,pr)+"%","Evidence + tradeoff"],
-  ["Live practicum",graduated(pr),graduated(pr)?"UNLOCK":"LOCK","14/14 + defense ≥85"]
+  ["Live practicum",graduated(pr),graduated(pr)?"UNLOCK":"LOCK","14/14 + 6/6 files + defense ≥85"]
  ];
  return '<aside class="sardine-proof glass"><div class="sardine-score"><span class="micro">PROJECT READINESS</span><strong>'+score(pr)+'%</strong><span>'+completed(pr)+'/14 assignments • defense '+g(st.defense,pr)+'% • '+(graduated(pr)?"graduated":"live locked")+'</span></div><div class="sardine-proof-list">'+gates.map(function(x){return '<div class="sardine-proof-row"><div><b>'+x[0]+'</b><span>'+x[3]+'</span></div><em>'+x[2]+'</em></div>';}).join("")+'</div><div class="sardine-artifacts"><span class="micro">PROJECT FILES / WHY</span>'+artifacts(pr).map(function(x){return '<div class="sardine-file"><code>'+esc(x[0])+'</code><span>'+esc(x[1])+'</span></div>';}).join("")+'</div><div class="sardine-talk"><span class="micro">BLIND ARCHITECTURE DEFENSE</span><textarea id="sdefense" placeholder="WHO, WHAT, WHERE, WHEN, WHY; realtime/batch; correctness; latency; failure; security; cost; rollback; tradeoff..."></textarea><button id="gradeSDefense">Grade on real server</button><div id="sdefenseResult" class="sardine-result">Live requires 14/14 + defense ≥85.</div></div></aside>';
 }
@@ -204,7 +205,7 @@ async function serverGrade(text,keys,type){
 function wire(pr){
  $$("[data-smode]").forEach(function(b){b.onclick=function(){st.mode=b.dataset.smode;save();render();};});
  $$("[data-sproject]").forEach(function(b){b.onclick=function(){st.project=+b.dataset.sproject;st.mode="mission";save();render();};});
- $$("[data-scheck]").forEach(function(b){b.onchange=function(){st.checks[checkKey(pr,+b.dataset.scheck)]=b.checked;save();render();};});
+ $$("[data-scheck]").forEach(function(b){b.disabled=true;});
 
  var defenseBtn=$("#gradeSDefense");
  if(defenseBtn)defenseBtn.onclick=async function(){
@@ -274,7 +275,7 @@ function wire(pr){
  };
  $$("[data-tmaster]").forEach(function(b){b.onchange=function(){st.vocab[terms[+b.dataset.tmaster].term]=b.checked;save();};});
  $$("[data-afilter]").forEach(function(b){b.onclick=function(){st.assignmentFilter=b.dataset.afilter;save();render();};});
- $$("[data-aproject]").forEach(function(b){b.onchange=function(){var pr2=projects[+b.dataset.aproject];st.checks[checkKey(pr2,+b.dataset.astage)]=b.checked;save();render();};});
+ $$("[data-aproject]").forEach(function(b){b.disabled=true;});
 
  var conn=$("#sconnector");
  if(conn)conn.onclick=async function(){
