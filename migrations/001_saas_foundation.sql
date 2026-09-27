@@ -153,3 +153,7 @@ create index if not exists idx_odyssey_artifacts_work on odyssey_artifact_eviden
 create unique index if not exists uq_odyssey_progress_user_version
   on odyssey_proficiency_snapshots(tenant_id,user_id,version)
   where user_id is not null;
+
+create unique index if not exists uq_odyssey_work_user
+  on odyssey_project_work_orders(tenant_id,user_id,work_order_id)
+  where user_id is not null;
