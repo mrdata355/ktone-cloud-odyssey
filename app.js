@@ -68,8 +68,9 @@ const incidentCases=[
 {sev:'SEV-2',title:'Delta small-file storm',summary:'Streaming output created excessive files and query latency jumped after trigger settings changed.',metrics:[['Files','182k'],['Median size','81KB'],['Query p95','38s'],['Cost delta','+41%']],signals:[['microbatch','10s'],['files_per_hour','14k'],['shuffle_spill','high'],['optimize_age','3d']],choices:['Verify trigger/partition change, pause unsafe tuning, compact bounded partitions','Delete the Delta table','Scale every SQL warehouse','Turn off checkpoints'],correct:0,root:'Trigger interval and partitioning created a small-file explosion. Tune batch cadence and compact safely with business validation.'}
 ];
 
-const defaults={xp:0,done:{},attempts:0,streak:0,bestStreak:0,checks:{},history:{},active:null,sound:false,incidentsSolved:0,lastIncident:null};
+const defaults={xp:0,done:{},attempts:0,streak:0,bestStreak:0,checks:{},history:{},active:null,sound:false,incidentsSolved:0,lastIncident:null,incidentProgress:{},incidentAttempts:0,incidentCorrect:0,incidentCurrent:0};
 let state=Object.assign({},defaults,JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'));
+state.incidentProgress=state.incidentProgress||{};state.incidentAttempts=Number(state.incidentAttempts)||0;state.incidentCorrect=Number(state.incidentCorrect)||0;state.incidentCurrent=Number(state.incidentCurrent)||0;
 let currentView='command', missionFilter='all', mapZoom=1, activeIncident=null, incidentStarted=0, incidentTimer=null;
 
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -485,26 +486,82 @@ function renderRelics(){
   $('#relicVault').innerHTML=worlds.map(function(w,wi){const unlocked=worldDone(wi)===3;return '<article class="relic-card glass '+(unlocked?'':'locked')+'"><div class="relic-icon">'+(unlocked?w.icon:'🔒')+'</div><span class="micro">'+(unlocked?'UNLOCKED':'LOCKED')+'</span><h3>'+w.relic+'</h3><p>'+(unlocked?'Earned by mastering all three '+w.name+' missions.':'Restore '+w.name+' to unlock this production relic.')+'</p></article>';}).join('');
 }
 
+function incidentKey(item){
+  return String((item&&item.title)||"incident").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+}
+function incidentUniqueSolved(){
+  return incidentCases.filter(function(x){var p=state.incidentProgress[incidentKey(x)];return p&&p.solved;}).length;
+}
+function incidentAccuracy(){
+  return state.incidentAttempts?Math.round((state.incidentCorrect/state.incidentAttempts)*100):0;
+}
+function nextIncidentIndex(){
+  if(!incidentCases.length)return 0;
+  var start=(Number(state.incidentCurrent)||0)+1;
+  for(var step=0;step<incidentCases.length;step++){
+    var i=(start+step)%incidentCases.length,p=state.incidentProgress[incidentKey(incidentCases[i])];
+    if(!(p&&p.solved))return i;
+  }
+  return start%incidentCases.length;
+}
+function renderIncidentProgress(){
+  var solved=incidentUniqueSolved(),total=incidentCases.length,progress=$('#incidentProgress'),stats=$('#incidentStats'),next=$('#nextIncident');
+  state.incidentsSolved=solved;
+  if(progress)progress.innerHTML='<b>'+solved+'/'+total+'</b><span>INCIDENTS MASTERED</span><i><em style="width:'+pct(solved,total)+'%"></em></i>';
+  if(stats)stats.innerHTML='<div><span>ACCURACY</span><b>'+incidentAccuracy()+'%</b></div><div><span>ATTEMPTS</span><b>'+state.incidentAttempts+'</b></div><div><span>CURRENT STREAK</span><b>'+(state.streak||0)+'</b></div><div><span>BEST STREAK</span><b>'+(state.bestStreak||0)+'</b></div>';
+  if(next){
+    var p=activeIncident&&state.incidentProgress[incidentKey(activeIncident)];
+    next.disabled=!(p&&p.solved);
+    next.textContent=solved===total?'Review next incident →':'Next incident →';
+  }
+}
+function advanceIncident(){
+  generateIncident(nextIncidentIndex());
+}
 function generateIncident(index){
-  activeIncident=(typeof index==='number'&&incidentCases.length)?incidentCases[((index%incidentCases.length)+incidentCases.length)%incidentCases.length]:random(incidentCases);state.lastIncident=activeIncident.title;save();incidentStarted=Date.now();
+  var idx;
+  if(typeof index==='number'&&incidentCases.length)idx=((index%incidentCases.length)+incidentCases.length)%incidentCases.length;
+  else idx=incidentCases.length?nextIncidentIndex():0;
+  state.incidentCurrent=idx;
+  activeIncident=incidentCases[idx]||null;
+  if(!activeIncident)return;
+  state.lastIncident=activeIncident.title;save();incidentStarted=Date.now();
+  var p=state.incidentProgress[incidentKey(activeIncident)]||{};
   $('#incidentSeverity').textContent=activeIncident.sev;$('#incidentTitle').textContent=activeIncident.title;$('#incidentSummary').textContent=activeIncident.summary;
   $('#blastMetrics').innerHTML=activeIncident.metrics.map(function(m){return '<div class="blast"><span>'+m[0]+'</span><b>'+m[1]+'</b></div>';}).join('');
   $('#incidentSignals').innerHTML=activeIncident.signals.map(function(s){return '<div class="signal"><span>'+s[0]+'</span><b>'+s[1]+'</b></div>';}).join('');
   const timeline=[['00:00','Alert fired from production SLO monitor.'],['00:02','Business impact confirmed by downstream KPI anomaly.'],['00:04','Last deployment / checkpoint change identified.'],['00:06','Incident commander requests next action.']];
   $('#incidentTimeline').innerHTML=timeline.map(function(t){return '<div class="timeline-row"><time>'+t[0]+'</time><i></i><p>'+t[1]+'</p></div>';}).join('');
-  $('#incidentChoices').innerHTML=activeIncident.choices.map(function(c,i){return '<button class="incident-choice" data-choice="'+i+'">'+String.fromCharCode(65+i)+'. '+c+'</button>';}).join('');
-  $('#incidentFeedback').className='incident-feedback hidden';$('#incidentFeedback').textContent='';
-  $('#runbookChecklist').innerHTML=['Preserve evidence','Bound blast radius','Identify last change','Verify hypothesis','Recover bounded scope','Reconcile business totals'].map(function(x){return '<div class="runbook-item"><i></i><span>'+x+'</span></div>';}).join('');
+  $('#incidentChoices').innerHTML=activeIncident.choices.map(function(choice,i){return '<button class="incident-choice" data-choice="'+i+'" '+(p.solved?'disabled':'')+'>'+String.fromCharCode(65+i)+'. '+choice+'</button>';}).join('');
+  $('#incidentFeedback').className='incident-feedback '+(p.solved?'good':'hidden');
+  $('#incidentFeedback').innerHTML=p.solved?'<b>Previously mastered.</b><br>'+activeIncident.root+'<div class="incident-complete">✓ COMPLETE • use Next Incident to continue</div>':'';
+  $('#runbookChecklist').innerHTML=['Preserve evidence','Bound blast radius','Identify last change','Verify hypothesis','Recover bounded scope','Reconcile business totals'].map(function(x){return '<div class="runbook-item '+(p.solved?'done':'')+'"><i></i><span>'+x+'</span></div>';}).join('');
   $$('.incident-choice').forEach(function(b){b.onclick=function(){resolveIncident(+b.dataset.choice);};});
-  if(incidentTimer)clearInterval(incidentTimer);incidentTimer=setInterval(updateIncidentClock,1000);updateIncidentClock();
+  if(incidentTimer)clearInterval(incidentTimer);incidentTimer=setInterval(updateIncidentClock,1000);updateIncidentClock();renderIncidentProgress();
 }
 function updateIncidentClock(){const s=Math.floor((Date.now()-incidentStarted)/1000),m=Math.floor(s/60),r=s%60;$('#incidentClock').textContent=String(m).padStart(2,'0')+':'+String(r).padStart(2,'0');}
 function resolveIncident(choice){
-  state.attempts++;
+  if(!activeIncident)return;
+  var key=incidentKey(activeIncident),p=state.incidentProgress[key]||{attempts:0,wrong:0,solved:false,firstPass:null};
+  state.attempts++;state.incidentAttempts++;p.attempts++;
   const good=choice===activeIncident.correct,fb=$('#incidentFeedback');fb.classList.remove('hidden');fb.classList.toggle('good',good);fb.classList.toggle('bad',!good);
-  if(good){state.streak=(state.streak||0)+1;state.bestStreak=Math.max(state.bestStreak||0,state.streak);state.incidentsSolved=(state.incidentsSolved||0)+1;fb.innerHTML='<b>Correct production sequence.</b><br>'+activeIncident.root;$$('.runbook-item').forEach(function(x,i){setTimeout(function(){x.classList.add('done');},i*120);});toast('Incident contained • senior signal +1');}
-  else{state.streak=0;fb.innerHTML='<b>Unsafe first move.</b><br>That action changes production before evidence and blast radius are established. Preserve state, scope impact, then test a hypothesis.';toast('Incident decision failed — try another action');}
-  save();renderHUD();
+  if(good){
+    state.incidentCorrect++;
+    var firstSolve=!p.solved;
+    if(p.firstPass===null)p.firstPass=p.attempts===1;
+    p.solved=true;p.solvedAt=p.solvedAt||Date.now();p.lastCorrectAt=Date.now();
+    state.streak=(state.streak||0)+1;state.bestStreak=Math.max(state.bestStreak||0,state.streak);
+    if(firstSolve)state.xp=(state.xp||0)+120;
+    fb.innerHTML='<b>Correct production sequence.</b><br>'+activeIncident.root+'<div class="incident-complete">✓ INCIDENT COMPLETE • '+(firstSolve?'+120 XP • ':'')+'Next Incident unlocked</div>';
+    $$('.runbook-item').forEach(function(x,i){setTimeout(function(){x.classList.add('done');},i*120);});
+    $$('.incident-choice').forEach(function(x){x.disabled=true;});
+    toast(firstSolve?'Incident mastered • +120 XP':'Review pass recorded');
+  }else{
+    p.wrong++;if(p.firstPass===null)p.firstPass=false;state.streak=0;
+    fb.innerHTML='<b>Unsafe first move.</b><br>That action changes production before evidence and blast radius are established. Preserve state, scope impact, then test a hypothesis.<div class="incident-retry">Retry this same incident — completion is not awarded yet.</div>';
+    toast('Incident decision failed — retry this case');
+  }
+  state.incidentProgress[key]=p;state.incidentsSolved=incidentUniqueSolved();save();renderHUD();renderIncidentProgress();
 }
 
 function closeModal(){$('#modal').classList.add('hidden');}
@@ -526,7 +583,8 @@ function wire(){
   $('#formatCode').onclick=function(){const e=$('#codeEditor');e.value=e.value.replace(/\t/g,'    ').replace(/[ ]+$/gm,'');editorFiles[activeEditorFile]=e.value;toast('Formatted '+activeEditorFile);};
   $('#clearLogs').onclick=function(){$('#runtimeLog').textContent='$ logs cleared';};
   $('#runNotebook').onclick=function(){if(!state.active)return;const wi=state.active.w,mi=state.active.m,w=worlds[wi],m=w.missions[mi];$('#notebookOutput').innerHTML='rows=12,481 • quality=99.92% • freshness=3m 12s • <span style="color:#6cf0a9">VALIDATION GREEN</span>';appendLog('validation notebook executed for '+w.name+' / '+m.title);};
-  $('#newIncident').onclick=generateIncident;
+  $('#newIncident').onclick=function(){generateIncident(nextIncidentIndex());};
+  if($('#nextIncident'))$('#nextIncident').onclick=advanceIncident;
   $('#resetProgress').onclick=function(){if(confirm('Reset all Cloud Odyssey progress on this device?')){state=Object.assign({},defaults);save();location.reload();}};
   document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();if((e.ctrlKey||e.metaKey)&&e.key==='Enter'&&currentView==='lab')gradeCurrent();});
 }
@@ -545,6 +603,8 @@ window.CloudOdyssey={
   openMission:openMission,
   launchIncident:function(index){setView('warroom');generateIncident(Number(index)||0);},
   incidents:incidentCases,
+  incidentProgress:function(){return {solved:incidentUniqueSolved(),total:incidentCases.length,accuracy:incidentAccuracy(),attempts:state.incidentAttempts,current:state.incidentCurrent};},
+  nextIncident:advanceIncident,
   setView:setView,
   doneCount:doneCount,
   worldDone:worldDone,
