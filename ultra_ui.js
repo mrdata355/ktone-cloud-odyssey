@@ -28,7 +28,8 @@ var viewMeta={
  "coding-forge":{title:"Elite Coding Forge",icon:"{ }",group:"Engineering Forge",desc:"Build, debug, optimize and productionize"},
  "pattern-match":{title:"Pattern Match Arena",icon:"↔",group:"Engineering Forge",desc:"Rapid problem-to-pattern recognition"},
  "adaptive-ladder":{title:"Adaptive Coding Ladder",icon:"⇧",group:"Engineering Forge",desc:"Recognize through package mastery"},
- "cloud-forge":{title:"Cloud + Lakehouse Project Forge",icon:"☁",group:"Cloud Campaigns",desc:"AWS, GCP, Azure, Databricks and Snowflake production projects"}
+ "cloud-forge":{title:"Cloud + Lakehouse Project Forge",icon:"☁",group:"Cloud Campaigns",desc:"AWS, GCP, Azure, Databricks and Snowflake production projects"},
+ backend:{title:"Backend Control Plane",icon:"⬡",group:"Platform Engineering",desc:"Real Vercel APIs, Postgres contracts, verification and observability"}
 };
 
 function navItems(){
