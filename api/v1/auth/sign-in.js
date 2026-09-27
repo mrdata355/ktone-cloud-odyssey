@@ -1,0 +1,2 @@
+const p=require("../../_lib/neon_auth_proxy");
+module.exports=async(req,res)=>{try{if(req.method!=="POST"){res.statusCode=405;return res.end();}const b=await p.body(req);const email=String(b.email||"").trim(),password=String(b.password||"");if(!email||!password){res.statusCode=422;return res.end(JSON.stringify({ok:false,error:{message:"Email and password required"}}));}p.send(res,await p.upstream(req,"/auth/sign-in/email","POST",{email,password}));}catch(e){p.fail(res,e);}};
