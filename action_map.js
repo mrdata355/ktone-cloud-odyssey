@@ -6,6 +6,10 @@ var CO=window.CloudOdyssey,D=document,$=(s,r=D)=>r.querySelector(s),$$=(s,r=D)=>
 var esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 var actions=[
+["Project Launchpad","Talk It Through projects","local","Opens a project chooser, stores a persistent work order, then launches the exact STAR scenario.","Project context + checklist persist locally; Speaking Lab scoring remains its native grader.","good"],
+["Project Launchpad","Break Production projects","local","Opens a concrete incident work order and launches the selected deterministic War Room scenario.","Project work order is local; incident decisions use the War Room simulator.","good"],
+["Project Launchpad","Cloud Adventure projects","local","Opens one of six AWS/GCP/Azure/Databricks/Snowflake projects and preselects the exact Cloud Forge project.","Cloud Forge simulation and blind server defense retain their existing execution boundaries.","good"],
+["Project Launchpad","Explain My Work projects","local","Creates a project work order, sets an active mission context, then launches the Stakeholder Room with the target audience preselected.","Mission launch creates a real server session; communication practice uses the Stakeholder Room grader.","good"],
 ["Command Center","Resume active mission","nav","Opens the last active mission, or mission 1 if none exists.","No backend; updates local app view/state.","good"],
 ["Command Center","Explore worlds / View PROJECTS* / KPI action buttons","nav","Navigates to the requested module.","No backend call.","good"],
 ["Command Center","Give me a hint / Push me harder","local","Changes BYTE coaching text.","Local browser state only.","good"],
