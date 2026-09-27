@@ -495,6 +495,10 @@ function incidentUniqueSolved(){
 function incidentAccuracy(){
   return state.incidentAttempts?Math.round((state.incidentCorrect/state.incidentAttempts)*100):0;
 }
+function firstUnsolvedIncidentIndex(){
+  for(var i=0;i<incidentCases.length;i++){var p=state.incidentProgress[incidentKey(incidentCases[i])];if(!(p&&p.solved))return i;}
+  return incidentCases.length?((Number(state.incidentCurrent)||0)%incidentCases.length):0;
+}
 function nextIncidentIndex(){
   if(!incidentCases.length)return 0;
   var start=(Number(state.incidentCurrent)||0)+1;
@@ -521,7 +525,7 @@ function advanceIncident(){
 function generateIncident(index){
   var idx;
   if(typeof index==='number'&&incidentCases.length)idx=((index%incidentCases.length)+incidentCases.length)%incidentCases.length;
-  else idx=incidentCases.length?nextIncidentIndex():0;
+  else idx=incidentCases.length?(activeIncident?nextIncidentIndex():firstUnsolvedIncidentIndex()):0;
   state.incidentCurrent=idx;
   activeIncident=incidentCases[idx]||null;
   if(!activeIncident)return;
