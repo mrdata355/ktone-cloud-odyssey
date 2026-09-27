@@ -3,7 +3,8 @@
 "use strict";
 if(!window.CloudOdyssey){console.error("Cloud Forge requires CloudOdyssey");return;}
 var CO=window.CloudOdyssey, KEY="cloud_odyssey_cloud_forge_v1";
-var st=Object.assign({provider:"aws",project:0,checks:{},evidence:{},terminal:{}},JSON.parse(localStorage.getItem(KEY)||"{}"));
+var st=Object.assign({provider:"aws",project:0,mode:"simulation",checks:{},evidence:{},terminal:{},simGrades:{}},JSON.parse(localStorage.getItem(KEY)||"{}"));
+var connectorSnapshot=null,connectorLoadedAt=0,connectorLoading=false;
 var $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from((r||document).querySelectorAll(s));
 var save=()=>localStorage.setItem(KEY,JSON.stringify(st));
 var esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -188,13 +189,39 @@ Project("snow-cortex","snowflake","Cortex AI / RAG Data Product","✦","Build an
 var projects={aws:aws,gcp:gcp,azure:azure,databricks:databricks,snowflake:snowflake};
 function p(){return projects[st.provider][st.project%projects[st.provider].length];}
 function checkKey(stage){return st.provider+"-"+p().id+"-"+stage;}
+function projectKey(pr,provider){return (provider||st.provider)+"-"+pr.id;}
 function done(){return commonStages.filter((_,i)=>st.checks[checkKey(i)]).length;}
+function simGrade(pr,provider){return Number(st.simGrades[projectKey(pr||p(),provider)]||0);}
+function graduated(pr,provider){
+ pr=pr||p();provider=provider||st.provider;
+ var count=commonStages.filter((_,i)=>st.checks[provider+"-"+pr.id+"-"+i]).length;
+ return count===12 && simGrade(pr,provider)>=85;
+}
 function score(){
- let d=done(),ev=st.evidence[st.provider+"-"+p().id]||"",real=ev.trim().length>30?1:0;
- return Math.round((d/12)*85+real*15);
+ let d=done(),g=simGrade(),ev=st.evidence[projectKey(p())]||"",real=graduated()&&ev.trim().length>30?1:0;
+ return Math.round((d/12)*70+(Math.min(100,g)/100)*15+real*15);
 }
 function totalScore(provider){
- let ps=projects[provider],sum=0;ps.forEach(pr=>{let count=commonStages.filter((_,i)=>st.checks[provider+"-"+pr.id+"-"+i]).length,ev=st.evidence[provider+"-"+pr.id]||"";sum+=Math.round(count/12*85+(ev.trim().length>30?15:0));});return Math.round(sum/ps.length);
+ let ps=projects[provider],sum=0;
+ ps.forEach(pr=>{
+   let count=commonStages.filter((_,i)=>st.checks[provider+"-"+pr.id+"-"+i]).length;
+   let g=simGrade(pr,provider),ev=st.evidence[projectKey(pr,provider)]||"";
+   let live=graduated(pr,provider)&&ev.trim().length>30?15:0;
+   sum+=Math.round(count/12*70+(Math.min(100,g)/100)*15+live);
+ });
+ return Math.round(sum/ps.length);
+}
+async function refreshConnectorStatus(force){
+ if(connectorLoading)return connectorSnapshot;
+ if(!force&&connectorSnapshot&&Date.now()-connectorLoadedAt<30000)return connectorSnapshot;
+ if(!window.CloudOdysseyBackend||!window.CloudOdysseyBackend.connectorStatus)return null;
+ connectorLoading=true;
+ try{connectorSnapshot=await window.CloudOdysseyBackend.connectorStatus();connectorLoadedAt=Date.now();}
+ catch(e){connectorSnapshot={ok:false,error:e.message};}
+ connectorLoading=false;return connectorSnapshot;
+}
+function connectorFor(provider){
+ return connectorSnapshot&&connectorSnapshot.connectors&&connectorSnapshot.connectors[provider]||null;
 }
 function architecture(pr){
  return '<div class="architecture-flow">'+pr.flow.map((x,i)=>'<div class="arch-node"><b>'+esc(x)+'</b><span>'+(i===0?"source / caller":i===pr.flow.length-1?"business output":"managed boundary")+'</span></div>'+(i<pr.flow.length-1?'<div class="arch-arrow">→</div>':'')).join("")+'</div>';
@@ -210,13 +237,17 @@ function terminalRun(pr,cmd){
 function providerLabel(k){return {aws:"AWS",gcp:"GCP",azure:"Azure",databricks:"Databricks",snowflake:"Snowflake"}[k]||k.toUpperCase();}
 function render(){
  var root=$("#view-cloud-forge"); if(!root)return;
- var pr=p(), ps=projects[st.provider], sc=score();
+ var pr=p(), ps=projects[st.provider], sc=score(), grad=graduated(), grade=simGrade(), mode=st.mode||"simulation";
+ if(mode==="live"&&!grad){st.mode="simulation";mode="simulation";save();}
+ var connector=connectorFor(st.provider);
+ if(mode==="live"&&!connectorSnapshot&&!connectorLoading)refreshConnectorStatus().then(render);
  var projectButtons=ps.map(function(x,i){
    var cnt=commonStages.filter(function(_,s){return st.checks[st.provider+"-"+x.id+"-"+s];}).length;
-   return `<button class="cloud-project-btn ${i===st.project?"active ":""}${cnt===12?"complete":""}" data-project="${i}">
+   var g=simGrade(x,st.provider),graduate=cnt===12&&g>=85;
+   return `<button class="cloud-project-btn ${i===st.project?"active ":""}${graduate?"complete":""}" data-project="${i}">
      <span class="ico">${x.icon}</span>
      <div><b>${esc(x.title)}</b><span>${esc(x.services.slice(0,3).join(" • "))}</span></div>
-     <em>${cnt}/12</em>
+     <em>${graduate?"GRAD":cnt+"/12"}</em>
    </button>`;
  }).join("");
  var serviceChips=pr.services.map(function(s){return `<span class="cloud-service-chip">${esc(s)}</span>`;}).join("");
@@ -224,7 +255,7 @@ function render(){
    return `<label class="cloud-stage">
      <input type="checkbox" data-cloud-stage="${i}" ${st.checks[checkKey(i)]?"checked":""}>
      <div><b>${String(i+1).padStart(2,"0")}. ${stage[0]}</b><p>${stage[1]}</p></div>
-     <em>+${Math.round(85/12)}%</em>
+     <em>SIM</em>
      <div class="why"><b>Project application:</b> ${stageWhy(pr,i)}</div>
    </label>`;
  }).join("");
@@ -237,12 +268,66 @@ function render(){
  var mapHTML=ps.map(function(x){
    return `<article class="cloud-map-card"><b>${x.icon} ${esc(x.title)}</b><span>${esc(x.services.join(" • "))}</span><p>${esc(x.why)}</p></article>`;
  }).join("");
- var evidence=(st.evidence[st.provider+"-"+pr.id]||"");
+ var evidence=(st.evidence[projectKey(pr)]||"");
+ var connectorLabel=!connectorSnapshot?"CHECKING":!connector?"UNKNOWN":connector.configured?(connector.validated?"CONNECTED":"CONFIGURED"):"DISCONNECTED";
+ var connectorDetail=!connectorSnapshot?"Reading server connector registry...":!connector?"No connector record.":connector.configured?"Server-side credentials are present; provider validation/execution adapter is the next live step.":"No server-side connector credentials are configured for "+providerLabel(st.provider)+".";
+ var simBody=`
+   <div class="architecture-canvas"><span class="micro">REFERENCE ARCHITECTURE</span>${architecture(pr)}
+     <div class="pattern-proof">
+       <div class="proof-card good"><b>WHY THIS ARCHITECTURE</b><p>${esc(pr.why)}</p></div>
+       <div class="proof-card warn"><b>WHY NOT THE ALTERNATIVE</b><p>${esc(pr.alt)}</p></div>
+     </div>
+   </div>
+   <div class="cloud-stage-grid">${stageCards}</div>
+   <div class="cloud-terminal">
+     <div class="cloud-terminal-head"><span>${st.provider.toUpperCase()} CLI / TERRAFORM SIMULATOR</span><button id="cloudRun">▶ Run simulated command</button></div>
+     <textarea id="cloudCommand">${esc(pr.commands[0])}</textarea>
+     <pre id="cloudOut">$ simulation ready — no real cloud resources will be changed</pre>
+   </div>
+   <div class="cloud-graduation-defense">
+     <span class="micro">SIMULATION GRADUATION DEFENSE</span>
+     <p>After all 12 simulation checkpoints, defend WHO/WHAT/WHERE/WHEN/WHY, failure boundaries, evidence, rollback and the rejected alternative. Live mode requires 12/12 + server grade ≥85.</p>
+     <textarea id="cloudDefense" placeholder="Defend the architecture without looking up the reference answer..."></textarea>
+     <button id="gradeCloudDefense">Grade blind defense on server</button>
+     <div id="cloudDefenseResult">Current defense grade: <b>${grade}%</b></div>
+   </div>`;
+ var liveBody=`
+   <div class="cloud-live-gate ${grad?"unlocked":"locked"}">
+     <span class="micro">LIVE CONNECTOR LAB</span>
+     <h3>${grad?"Simulation graduated":"Live mode locked"}</h3>
+     <p>${grad?"You earned access to the real-provider phase. Simulation remains available for unlimited safe repetition.":"Complete all 12 simulation checkpoints and earn ≥85 on the blind architecture defense first."}</p>
+     <div class="live-gate-grid">
+       <div><span>SIM CHECKPOINTS</span><b>${done()}/12</b></div>
+       <div><span>DEFENSE</span><b>${grade}%</b></div>
+       <div><span>CONNECTOR</span><b>${connectorLabel}</b></div>
+     </div>
+   </div>
+   ${grad?`<div class="cloud-live-console">
+      <div class="cloud-terminal-head"><span>${providerLabel(st.provider)} LIVE CONNECTOR</span><button id="refreshConnector">↻ Refresh connector status</button></div>
+      <p>${esc(connectorDetail)}</p>
+      <div class="live-safety"><b>Safety contract</b><span>Live execution starts read-only. Secrets stay server-side. Destructive operations require an explicit project-specific approval path.</span></div>
+      <div class="live-command-plan">
+        <span class="micro">FIRST LIVE VALIDATION SEQUENCE</span>
+        ${pr.commands.map((cmd,i)=>`<div class="live-command-row"><b>${i+1}</b><code>${esc(cmd)}</code><span>${i===0?"identity / connectivity":i===1?"resource evidence":"project proof"}</span></div>`).join("")}
+      </div>
+      <button id="liveConnectorCheck">Run connector readiness check</button>
+      <pre id="liveConnectorOut">$ no provider action executed yet</pre>
+    </div>
+    <div class="real-proof"><span class="micro">LIVE EVIDENCE — POST GRADUATION ONLY</span>
+      <p style="font-size:7px;color:#8094ad">Paste sanitized deployment/job/run IDs, test output, query/job profiles, alert evidence, or architecture review after actual provider work. Never paste secrets.</p>
+      <textarea id="realEvidence" placeholder="Example: deployment/job ID + what it proves...">${esc(evidence)}</textarea>
+      <button id="saveEvidence">Save live evidence note</button>
+    </div>`:""}`;
  root.innerHTML=`
  <div class="view-heading">
-   <div><span class="micro">MULTI-PLATFORM PRODUCTION CAMPAIGNS</span><h2>Cloud + Lakehouse Project Forge</h2>
-   <p>${Object.values(projects).reduce((n,x)=>n+x.length,0)} end-to-end AWS, GCP, Azure, Databricks and Snowflake projects. Simulation builds architecture and operational reasoning now; platform evidence later upgrades the same project with actual CLI/job/deployment proof.</p></div>
-   <span class="enterprise-badge">${Object.values(projects).reduce((n,x)=>n+x.length,0)} PROJECTS • ${Object.values(projects).reduce((n,x)=>n+x.length,0)*12} STAGES</span>
+   <div><span class="micro">SIMULATE → GRADUATE → CONNECT LIVE</span><h2>Cloud + Lakehouse Project Forge</h2>
+   <p>${Object.values(projects).reduce((n,x)=>n+x.length,0)} end-to-end projects. Every live connector is gated behind completion of its simulation and a blind architecture defense.</p></div>
+   <span class="enterprise-badge">48 PROJECTS • 576 SIM CHECKPOINTS</span>
+ </div>
+ <div class="cloud-mode-switch glass">
+   <button class="cloud-mode-btn ${mode==="simulation"?"active":""}" data-cloud-mode="simulation">01 • Simulation</button>
+   <button class="cloud-mode-btn ${mode==="live"?"active":""} ${grad?"":"locked"}" data-cloud-mode="live">${grad?"02 • Live Connector":"🔒 02 • Live Connector"}</button>
+   <div class="cloud-mode-status"><b>${grad?"SIMULATION GRADUATED":"SIMULATION REQUIRED"}</b><span>${done()}/12 • defense ${grade}%</span></div>
  </div>
  <div class="cloud-forge-shell">
    <aside class="cloud-track glass">
@@ -254,34 +339,18 @@ function render(){
    </aside>
    <section class="cloud-project-main glass">
      <div class="cloud-project-head">
-       <span class="micro">${st.provider.toUpperCase()} • PROJECT ${String(st.project+1).padStart(2,"0")}</span>
+       <span class="micro">${st.provider.toUpperCase()} • PROJECT ${String(st.project+1).padStart(2,"0")} • ${mode.toUpperCase()}</span>
        <h2>${pr.icon} ${esc(pr.title)}</h2><p>${esc(pr.scenario)}</p>
        <div class="cloud-service-chips">${serviceChips}</div>
      </div>
-     <div class="architecture-canvas"><span class="micro">REFERENCE ARCHITECTURE</span>${architecture(pr)}
-       <div class="pattern-proof">
-         <div class="proof-card good"><b>WHY THIS ARCHITECTURE</b><p>${esc(pr.why)}</p></div>
-         <div class="proof-card warn"><b>WHY NOT THE ALTERNATIVE</b><p>${esc(pr.alt)}</p></div>
-       </div>
-     </div>
-     <div class="cloud-stage-grid">${stageCards}</div>
-     <div class="cloud-terminal">
-       <div class="cloud-terminal-head"><span>${st.provider.toUpperCase()} CLI / TERRAFORM SIMULATOR</span><button id="cloudRun">▶ Run command</button></div>
-       <textarea id="cloudCommand">${esc(pr.commands[0])}</textarea>
-       <pre id="cloudOut">$ simulation ready — no real cloud resources will be changed</pre>
-     </div>
+     ${mode==="simulation"?simBody:liveBody}
    </section>
    <aside class="cloud-proof glass">
-     <div class="proof-head"><span class="micro">PROJECT EVIDENCE</span><h3>Production readiness</h3><div class="proof-score">${sc}%</div>
-       <span>${done()}/12 simulated stages • ${evidence.trim().length>30?"real evidence logged":"real evidence missing"}</span>
+     <div class="proof-head"><span class="micro">PROJECT EVIDENCE</span><h3>Two-tier readiness</h3><div class="proof-score">${sc}%</div>
+       <span>${done()}/12 simulation • defense ${grade}% • ${evidence.trim().length>30?"live evidence logged":"live evidence pending"}</span>
      </div>
      <div class="proof-checks">${proofHTML}</div>
      <div class="cloud-files"><span class="micro">REQUIRED REPOSITORY FILES</span><h4>Name files by purpose</h4>${fileHTML}</div>
-     <div class="real-proof"><span class="micro">REAL-CLOUD EVIDENCE</span>
-       <p style="font-size:7px;color:#8094ad">Paste sanitized evidence from the selected platform: deployment/job/run ID, test output, query/job profile, alert evidence, or architecture review. Never paste secrets or credentials.</p>
-       <textarea id="realEvidence" placeholder="Example: deployment/job ID + what it proves...">${esc(evidence)}</textarea>
-       <button id="saveEvidence">Save evidence note</button>
-     </div>
    </aside>
  </div>
  <div class="cloud-map-grid">${mapHTML}</div>`;
@@ -305,23 +374,53 @@ function stageWhy(pr,i){
  return specifics[i];
 }
 function proofChecks(pr){
- let ev=(st.evidence[st.provider+"-"+pr.id]||"").trim();
+ let ev=(st.evidence[projectKey(pr)]||"").trim(),g=simGrade(pr),grad=graduated(pr),conn=connectorFor(st.provider);
  return [
  ["Architecture",st.checks[checkKey(0)],st.checks[checkKey(0)]?"PASS":"OPEN","Grain, boundaries and authoritative state"],
  ["Security/IAM",st.checks[checkKey(1)],st.checks[checkKey(1)]?"PASS":"OPEN","Least privilege and secret boundaries"],
- ["IaC",st.checks[checkKey(2)],st.checks[checkKey(2)]?"PASS":"OPEN","Reproducible resource definitions"],
  ["Tests + DQ",st.checks[checkKey(7)],st.checks[checkKey(7)]?"PASS":"OPEN","Failure and business validation"],
- ["Observability",st.checks[checkKey(8)],st.checks[checkKey(8)]?"PASS":"OPEN","SLO/alerts/traceability"],
  ["Incident recovery",st.checks[checkKey(10)],st.checks[checkKey(10)]?"PASS":"OPEN","Bounded recovery + rollback"],
- ["Real cloud proof",ev.length>30,ev.length>30?"LOGGED":"MISSING","Actual sandbox/account evidence"]
+ ["Simulation complete",done()===12,done()===12?"12/12":done()+"/12","All safe simulation checkpoints complete"],
+ ["Blind defense",g>=85,g+"%",">=85 server grade required"],
+ ["Live gate",grad,grad?"UNLOCKED":"LOCKED","Live connector cannot open before graduation"],
+ ["Connector",!!(conn&&conn.configured),conn&&conn.configured?"CONFIGURED":"OFF","Server-side provider connection status"],
+ ["Live proof",grad&&ev.length>30,grad&&ev.length>30?"LOGGED":"PENDING","Accepted only after simulation graduation"]
  ];
 }
 function wire(pr){
- $$("[data-provider]").forEach(b=>b.onclick=()=>{st.provider=b.dataset.provider;st.project=0;save();render();});
- $$("[data-project]").forEach(b=>b.onclick=()=>{st.project=+b.dataset.project;save();render();});
+ $$("[data-provider]").forEach(b=>b.onclick=()=>{st.provider=b.dataset.provider;st.project=0;st.mode="simulation";save();render();});
+ $$("[data-project]").forEach(b=>b.onclick=()=>{st.project=+b.dataset.project;st.mode="simulation";save();render();});
+ $$("[data-cloud-mode]").forEach(b=>b.onclick=()=>{
+   var next=b.dataset.cloudMode;
+   if(next==="live"&&!graduated()){CO.toast("Finish 12/12 simulation checkpoints and score at least 85 on the blind defense first.");return;}
+   st.mode=next;save();render();
+ });
  $$("[data-cloud-stage]").forEach(c=>c.onchange=()=>{st.checks[checkKey(+c.dataset.cloudStage)]=c.checked;save();render();});
- $("#cloudRun").onclick=()=>{$("#cloudOut").textContent=terminalRun(pr,$("#cloudCommand").value);};
- $("#saveEvidence").onclick=()=>{st.evidence[st.provider+"-"+pr.id]=$("#realEvidence").value;save();CO.toast("Cloud evidence note saved");render();};
+ var run=$("#cloudRun");if(run)run.onclick=()=>{$("#cloudOut").textContent=terminalRun(pr,$("#cloudCommand").value);};
+ var gradeBtn=$("#gradeCloudDefense");if(gradeBtn)gradeBtn.onclick=async()=>{
+   var answer=$("#cloudDefense").value.trim();if(!answer){CO.toast("Defend the architecture first");return;}
+   var out=$("#cloudDefenseResult");out.textContent="Calling server grader...";
+   try{
+     if(!window.CloudOdysseyBackend)throw new Error("Backend grader is not loaded");
+     var required=["idempotency","evidence","rollback","reconcile","least privilege","failure","business"];
+     var r=await window.CloudOdysseyBackend.grade(answer,required,{type:"cloud-simulation:"+st.provider+":"+pr.id,blind:true,duration_ms:90000});
+     st.simGrades[projectKey(pr)]=r.score;save();
+     out.textContent="SERVER DEFENSE "+r.score+"% • request "+(r.request_id||"—");
+     setTimeout(render,350);
+   }catch(e){out.textContent=e.data?JSON.stringify(e.data,null,2):e.message;}
+ };
+ var refresh=$("#refreshConnector");if(refresh)refresh.onclick=async()=>{await refreshConnectorStatus(true);render();};
+ var liveCheck=$("#liveConnectorCheck");if(liveCheck)liveCheck.onclick=async()=>{
+   var out=$("#liveConnectorOut");out.textContent="$ checking server connector registry...";
+   var r=await refreshConnectorStatus(true),conn=r&&r.connectors&&r.connectors[st.provider];
+   if(!conn){out.textContent="$ connector status unavailable";return;}
+   if(!conn.configured){out.textContent="$ simulation graduated\n$ live connector DISCONNECTED\nRequired server configuration:\n- "+(conn.required||[]).join("\n- ");return;}
+   out.textContent="$ simulation graduated\n$ connector configuration FOUND\n$ validation state: "+(conn.validated?"VALIDATED":"NOT YET VALIDATED")+"\n$ no provider mutation executed";
+ };
+ var saveBtn=$("#saveEvidence");if(saveBtn)saveBtn.onclick=()=>{
+   if(!graduated()){CO.toast("Live evidence is locked until simulation graduation");return;}
+   st.evidence[projectKey(pr)]=$("#realEvidence").value;save();CO.toast("Live evidence note saved");render();
+ };
 }
 function install(){
  let nav=$("#nav"),work=$("#workspace");if(!nav||!work)return;
