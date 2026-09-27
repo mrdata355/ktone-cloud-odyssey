@@ -232,7 +232,7 @@ function saveActiveEditor(){
 function switchEditor(file){
   if(!editorFiles.hasOwnProperty(file))return;
   saveActiveEditor();activeEditorFile=file;
-  $('.ide-tab').forEach(function(b){b.classList.toggle('active',b.dataset.editor===file);});
+  $$('.ide-tab').forEach(function(b){b.classList.toggle('active',b.dataset.editor===file);});
   const e=$('#codeEditor');if(e)e.value=editorFiles[file]||'';
   const lang=$('#editorLang');
   if(lang)lang.textContent=file.endsWith('.yaml')?'YAML':file.endsWith('.py')?'PYTHON':'TEXT';
@@ -253,7 +253,7 @@ function loadLab(wi,mi){
   $('#labWorldLabel').textContent='WORLD '+String(wi+1).padStart(2,'0')+' // '+w.name.toUpperCase();
   $('#labTitle').textContent=m.title;
   $('#labState').textContent=state.done[id]?'MASTERED':'IN PROGRESS';
-  editorFiles['solution.py']=starterFor(m,w);editorFiles['tests.py']=buildTestFile(w,m);editorFiles['pipeline.yaml']=buildPipelineFile(w,m);activeEditorFile='solution.py';$('#codeEditor').value=editorFiles['solution.py'];$('.ide-tab').forEach(function(b){b.classList.toggle('active',b.dataset.editor==='solution.py');});$('#editorLang').textContent='PYTHON';
+  editorFiles['solution.py']=starterFor(m,w);editorFiles['tests.py']=buildTestFile(w,m);editorFiles['pipeline.yaml']=buildPipelineFile(w,m);activeEditorFile='solution.py';$('#codeEditor').value=editorFiles['solution.py'];$$('.ide-tab').forEach(function(b){b.classList.toggle('active',b.dataset.editor==='solution.py');});$('#editorLang').textContent='PYTHON';
   $('#runtimeLog').textContent='$ workspace initialized\n$ stack: '+w.stack.join(' / ')+'\n$ mission: '+m.title+'\n$ waiting for your implementation...';
   renderLabSide('brief',wi,mi);
   renderPipeline(wi,mi);
@@ -577,8 +577,8 @@ function wire(){
   $('#mapZoomIn').onclick=function(){mapZoom=Math.min(1.2,mapZoom+.1);applyMapZoom();};
   $('#mapZoomOut').onclick=function(){mapZoom=Math.max(.7,mapZoom-.1);applyMapZoom();};
   $('#mapZoomReset').onclick=function(){mapZoom=1;applyMapZoom();};
-  $('.lab-side-tab').forEach(function(b){b.onclick=function(){$('.lab-side-tab').forEach(function(x){x.classList.remove('active');});b.classList.add('active');if(state.active)renderLabSide(b.dataset.labpanel,state.active.w,state.active.m);};});
-  $('.ide-tab').forEach(function(b){b.onclick=function(){switchEditor(b.dataset.editor);};});
+  $$('.lab-side-tab').forEach(function(b){b.onclick=function(){$$('.lab-side-tab').forEach(function(x){x.classList.remove('active');});b.classList.add('active');if(state.active)renderLabSide(b.dataset.labpanel,state.active.w,state.active.m);};});
+  $$('.ide-tab').forEach(function(b){b.onclick=function(){switchEditor(b.dataset.editor);};});
   $('#runCode').onclick=runTestsOnly;$('#submitLab').onclick=gradeCurrent;$('#revealSolution').onclick=revealSolution;
   $('#formatCode').onclick=function(){const e=$('#codeEditor');e.value=e.value.replace(/\t/g,'    ').replace(/[ ]+$/gm,'');editorFiles[activeEditorFile]=e.value;toast('Formatted '+activeEditorFile);};
   $('#clearLogs').onclick=function(){$('#runtimeLog').textContent='$ logs cleared';};
