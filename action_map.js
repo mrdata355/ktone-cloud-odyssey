@@ -15,9 +15,9 @@ var actions=[
 ["Command Center","Telemetry Inspect / Diagnose","sim","Inspect explains a simulated signal; Diagnose routes to Incident War Room.","Telemetry values are simulated; no production telemetry backend.","warn"],
 ["World Map","− / 100% / +","local","Changes map zoom.","Browser visual state only.","good"],
 ["World Map","World card / Enter World / Revisit","nav","Opens the world's mission detail modal.","No backend call.","good"],
-["World Map","Launch mission","nav","Loads that mission into Cloud Lab.","Local state + navigation.","good"],
+["World Map","Launch mission","server","Opens the mission immediately and starts a Cloud Odyssey control-plane mission session.","REAL POST /api/v1/mission-sessions/start; server issues session_id/request_id. Persistence is reported separately.","good"],
 ["Missions","All / Open / Mastered","local","Filters the 30 mission rows.","Browser UI only.","good"],
-["Missions","Launch / Revisit","nav","Loads selected mission into Cloud Lab.","Local state + navigation.","good"],
+["Missions","Launch / Revisit","server","Opens selected mission and starts a Cloud Odyssey control-plane mission session.","REAL POST /api/v1/mission-sessions/start; server ack is independent of durable database configuration.","good"],
 ["Cloud Lab","Choose a mission","nav","Opens Mission Control.","Navigation only.","good"],
 ["Cloud Lab","Brief / Architecture / Acceptance / Business","local","Switches the mission-side explanation panel.","Local UI only.","good"],
 ["Cloud Lab","solution.py / tests.py / pipeline.yaml","local","Switches between separate editor buffers.","Browser memory only; FIXED in current build.","good"],
@@ -162,6 +162,7 @@ function render(){
 }
 function classifyButton(b){
  var id=b.id||"",txt=(b.textContent||"").replace(/\\s+/g," ").trim();
+ if(b.classList.contains("mission-open")||b.classList.contains("open-mission")||b.dataset.open)return ["REAL SERVER","Opens the mission locally and POSTs a mission-start session to the Cloud Odyssey control plane."];
  if(b.dataset.view||b.dataset.jump||b.dataset.richAction||b.dataset.dockView)return ["NAVIGATION","Screen/module changed; no backend call."];
  if(/runPython|runSql/.test(id))return ["BROWSER EXECUTION","Python/SQLite executes locally in Pyodide."];
  if(/loadMonaco/.test(id))return ["BROWSER EXECUTION","Monaco loads from CDN into this browser."];
