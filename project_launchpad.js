@@ -6,6 +6,24 @@ var $=function(s,r){return (r||D).querySelector(s);};
 var $$=function(s,r){return Array.prototype.slice.call((r||D).querySelectorAll(s));};
 var esc=function(s){return String(s||"").replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});};
 var streams={
+ quick:{
+  label:"Quick Win",view:"pattern-match",kicker:"RAPID PATTERN PROJECT",
+  projects:[
+   {title:"SQL Window Pattern Sprint",tag:"SQL • Windows",scenario:"Identify the correct window function for running totals, latest-row selection, previous-row comparison and ranked groups.",objective:"Build recognition speed before syntax: problem shape → window pattern → WHY → caveat.",files:["notes/sql_window_patterns.md"],accept:["Match 8 window scenarios","Explain ROW_NUMBER vs RANK vs DENSE_RANK","Recognize LAG/LEAD triggers","State one caveat per pattern"],launch:{kind:"match",category:"window"}},
+   {title:"Spark Performance Triage Sprint",tag:"PySpark • Performance",scenario:"Recognize skew, broadcast, repartition, AQE and pre-aggregation from production symptoms.",objective:"Diagnose the bottleneck before changing cluster size or code.",files:["notes/spark_performance_patterns.md"],accept:["Recognize skew from uneven tasks","Know when broadcast is safe","Distinguish repartition from salting","Explain why evidence comes first"],launch:{kind:"match",category:"performance"}},
+   {title:"SQL Command Semantics Sprint",tag:"SQL • DDL/DML/TCL",scenario:"Match operational intent to CREATE/ALTER/MERGE/DELETE/TRUNCATE/COMMIT/ROLLBACK and related commands.",objective:"Make command selection automatic while preserving transaction and rollback semantics.",files:["notes/sql_command_semantics.md"],accept:["Match DDL/DML/TCL cases","Explain DELETE vs TRUNCATE vs DROP","Recognize MERGE use cases","State rollback implications"],launch:{kind:"match",category:"commands"}},
+   {title:"Data Cleaning Pattern Sprint",tag:"Python • Pandas",scenario:"Match dirty-data symptoms to null handling, dedupe, type conversion, string normalization, outlier inspection and filtering.",objective:"Recognize cleaning intent before writing code and preserve business meaning.",files:["notes/data_cleaning_patterns.md"],accept:["Match 8 cleaning symptoms","Explain dedupe key choice","Separate invalid from missing","State why outliers are not blindly deleted"],launch:{kind:"match",category:"cleaning"}}
+  ]
+ },
+ build:{
+  label:"Build Something",view:"coding-forge",kicker:"HANDS-ON ENGINEERING BUILD",
+  projects:[
+   {title:"Latest Customer Record CDC Build",tag:"SQL • CDC",scenario:"Customer CDC has multiple versions. Produce deterministic current state by customer.",objective:"Write the query, defend ordering/tie-breaking, name the file correctly and explain why DISTINCT is unsafe.",files:["sql/cdc/customer_latest.sql","tests/customer_latest_cases.sql"],accept:["ROW_NUMBER partitioned by customer","Stable event_time + event_version ordering","One current row per customer","Explain retry/determinism tradeoff"],launch:{kind:"coding",index:3,mode:"production"}},
+   {title:"Skewed Spark Join Build",tag:"PySpark • Performance",scenario:"One key owns 2.5M rows while peer partitions have ~10–12K; one task dominates stage time.",objective:"Profile, choose broadcast/AQE/salting based on evidence, write the optimized transformation and defend the tradeoff.",files:["spark/jobs/customer_segment_enrichment.py","tests/test_skew_fixture.py","notes/query_plan.md"],accept:["Identify skew before scaling","Prune columns early","Choose broadcast only if dimension fits","Explain fallback when broadcast is unsafe"],launch:{kind:"coding",index:7,mode:"optimize"}},
+   {title:"Delta Incremental Inventory MERGE",tag:"Databricks • SQL",scenario:"Silver inventory changes must update Gold current state without rewriting unrelated resorts.",objective:"Implement deterministic MERGE on a stable business key with retry-safe semantics.",files:["databricks/sql/merge_inventory_current.sql","tests/merge_replay.sql"],accept:["Stable inventory_id match","Matched update + unmatched insert","Bounded mutation scope","Explain precedence/retry semantics"],launch:{kind:"coding",index:10,mode:"production"}},
+   {title:"Query-Plan First Optimization",tag:"SQL • Performance",scenario:"A reporting query takes 10 minutes instead of 10 seconds.",objective:"Inspect plan/cardinality/scan/join/sort evidence before changing indexes, clustering or compute.",files:["sql/performance/order_report_explain.sql","notes/optimization_findings.md"],accept:["Start with EXPLAIN/profile","Identify dominant operator","Prune columns/rows before scaling","Explain engine-specific tuning caveat"],launch:{kind:"coding",index:12,mode:"optimize"}}
+  ]
+ },
  talk:{
   label:"Talk It Through",view:"speaking",kicker:"ARCHITECTURE + STAR DEFENSE",
   projects:[
@@ -63,7 +81,9 @@ function launch(kind,index){
  var work={id:kind+"-"+index,kind:kind,title:p.title,tag:p.tag,scenario:p.scenario,objective:p.objective,files:p.files,accept:p.accept,done:{},view:s.view,startedAt:Date.now()};
  saveWork(work);closeModal();
  var a=p.launch||{};
- if(a.kind==="star"&&window.CloudOdysseySpeaking&&window.CloudOdysseySpeaking.launchStar)window.CloudOdysseySpeaking.launchStar(a.index);
+ if(a.kind==="match"&&window.CloudOdysseyCodingForge&&window.CloudOdysseyCodingForge.launchMatch)window.CloudOdysseyCodingForge.launchMatch(a.category);
+ else if(a.kind==="coding"&&window.CloudOdysseyCodingForge&&window.CloudOdysseyCodingForge.launchChallenge)window.CloudOdysseyCodingForge.launchChallenge(a.index,a.mode);
+ else if(a.kind==="star"&&window.CloudOdysseySpeaking&&window.CloudOdysseySpeaking.launchStar)window.CloudOdysseySpeaking.launchStar(a.index);
  else if(a.kind==="incident"&&CO.launchIncident)CO.launchIncident(a.index);
  else if(a.kind==="cloud"&&window.CloudOdysseyCloudForge&&window.CloudOdysseyCloudForge.launch)window.CloudOdysseyCloudForge.launch(a.provider,a.projectId);
  else if(a.kind==="explain"){
@@ -93,6 +113,8 @@ function renderWorkOrder(scroll){
 }
 function bindCards(){
  var map=[
+  ['[data-rich-action="view:pattern-match"]',"quick","Choose quick project →"],
+  ['[data-rich-action="view:coding-forge"]',"build","Choose build project →"],
   ['[data-rich-action="view:speaking"]',"talk","Choose speaking project →"],
   ['[data-rich-action="view:warroom"]',"incident","Choose incident →"],
   ['[data-rich-action="view:cloud-forge"]',"cloud","Choose cloud project →"],
