@@ -159,7 +159,7 @@ function openRichModal(title,kicker,body,actions){
  '<div class="u-rich-modal-body">'+body+'</div>'+
  '<div class="u-rich-modal-actions">'+(actions||[]).map(function(a){return '<button class="'+(a.primary?"primary-btn":"secondary-btn")+'" data-rich-action="'+esc(a.action)+'">'+esc(a.label)+'</button>';}).join("")+'</div>';
  modal.classList.remove("hidden");
- $("[data-rich-action]",content).forEach(function(b){b.onclick=function(){
+ $$("[data-rich-action]",content).forEach(function(b){b.onclick=function(){
    var action=b.dataset.richAction;
    modal.classList.add("hidden");
    handleRichAction(action);
@@ -178,7 +178,7 @@ function handleRichAction(action){
      '<div class="u-modal-list">'+w.missions.map(function(m,mi){return '<div><b>'+esc(m.title)+'</b><span>'+esc(w.skills[mi])+' • '+esc(m.type)+'</span><button data-modal-mission="'+wi+','+mi+'">Launch</button></div>';}).join("")+'</div>',
      [{label:"Mission Control",action:"view:missions"},{label:"Practice this world",action:"mission:"+wi+",0",primary:true}]
    );
-   setTimeout(function(){$("[data-modal-mission]",$("#modalContent")).forEach(function(b){b.onclick=function(){var q=b.dataset.modalMission.split(",");$("#modal").classList.add("hidden");CO.openMission(+q[0],+q[1]);};});},0);
+   setTimeout(function(){$$("[data-modal-mission]",$("#modalContent")).forEach(function(b){b.onclick=function(){var q=b.dataset.modalMission.split(",");$("#modal").classList.add("hidden");CO.openMission(+q[0],+q[1]);};});},0);
    return;
  }
  if(action==="surprise"){
@@ -203,7 +203,7 @@ function createExperienceLaunchpad(){
    '<button class="u-mode-card green" data-rich-action="view:stakeholder"><span class="u-mode-icon">☍</span><div><small>8–12 MIN</small><b>Explain My Work</b><p>Practice speaking to executives, DE, BI, MLOps, SRE and more.</p></div><em>Choose audience →</em></button>'+
  '</div>';
  hero.insertAdjacentElement("afterend",section);
- $("[data-rich-action]",section).forEach(function(b){b.onclick=function(){handleRichAction(b.dataset.richAction);};});
+ $$("[data-rich-action]",section).forEach(function(b){b.onclick=function(){handleRichAction(b.dataset.richAction);};});
 }
 function addActionButton(container,label,action,kind){
  var b=D.createElement("button");b.className="u-context-btn "+(kind||"");b.textContent=label;b.dataset.richAction=action;
@@ -217,11 +217,11 @@ function enhanceCommandCards(){
    var routes=[["Open missions","view:missions"],["Open PROJECTS*","view:projects"],["Try incident","view:warroom"],["View evidence","view:skills"]];
    addActionButton(a,routes[i][0],routes[i][1],"quiet");card.appendChild(a);
  });
- $("#campaignRows .campaign-row",command).forEach(function(row,i){
+ $$("#campaignRows .campaign-row",command).forEach(function(row,i){
    if(row.querySelector(".u-inline-actions"))return;
    var a=D.createElement("div");a.className="u-inline-actions";addActionButton(a,"Explore","world:"+i,"");addActionButton(a,"Start quest","mission:"+i+",0","primary");row.appendChild(a);
  });
- $("#telemetry .telemetry-tile",command).forEach(function(tile,i){
+ $$("#telemetry .telemetry-tile",command).forEach(function(tile,i){
    if(tile.querySelector(".u-tile-action"))return;
    var b=D.createElement("button");b.className="u-tile-action";b.textContent=i===5?"Diagnose →":"Inspect →";
    b.onclick=function(){if(i===5)activate("warroom");else openRichModal(tile.querySelector("span").textContent,"LIVE PLATFORM SIGNAL",'<p>This signal is part of the simulated production environment. Use it as evidence when deciding whether a system is healthy, degraded, or ready to publish.</p><div class="u-signal-big">'+esc(tile.querySelector("b").textContent)+'</div>',[{label:"Open Incident War Room",action:"view:warroom",primary:true},{label:"View skills evidence",action:"view:skills"}]);};tile.appendChild(b);
@@ -230,7 +230,7 @@ function enhanceCommandCards(){
  if(radar&&!radar.querySelector(".u-section-actions")){var ra=D.createElement("div");ra.className="u-section-actions";addActionButton(ra,"Train weakest skill","weakest","primary");addActionButton(ra,"Open proficiency","view:elite","");radar.appendChild(ra);}
 }
 function enhanceProjectCards(){
- $("#projectsBoard .project-card").forEach(function(card,i){
+ $$("#projectsBoard .project-card").forEach(function(card,i){
    if(card.querySelector(".u-project-actions"))return;
    var actions=D.createElement("div");actions.className="u-project-actions";
    addActionButton(actions,"Open world","world:"+i,"");
@@ -253,7 +253,7 @@ function enhanceSkillCards(){
  });
 }
 function enhanceRelics(){
- $("#relicVault .relic-card").forEach(function(card,i){
+ $$("#relicVault .relic-card").forEach(function(card,i){
    if(card.querySelector(".u-project-actions"))return;
    var a=D.createElement("div");a.className="u-project-actions";
    addActionButton(a,"View world","world:"+i,"");
@@ -262,7 +262,7 @@ function enhanceRelics(){
  });
 }
 function enhanceWorldCards(){
- $("#worldMap .world-node").forEach(function(card,i){
+ $$("#worldMap .world-node").forEach(function(card,i){
    if(card.dataset.uWholeCard)return;card.dataset.uWholeCard="1";card.setAttribute("role","button");card.setAttribute("tabindex","0");
    card.addEventListener("click",function(e){if(e.target.closest("button"))return;handleRichAction("world:"+i);});
    card.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();handleRichAction("world:"+i);}});
