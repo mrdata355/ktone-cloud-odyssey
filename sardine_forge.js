@@ -6,7 +6,8 @@ var B=window.CloudOdysseyBackend||null;
 var D=window.CloudOdysseySardineData;
 var projects=D.projects,patterns=D.patterns,terms=D.terms,coverage=D.coverage;
 var KEY="cloud_odyssey_sardine_forge_v1";
-var st=Object.assign({project:0,mode:"mission",checks:{},defense:{},mock:{},incident:{},star:{},pattern:{right:0,total:0,index:0},vocab:{},audience:"shareholder",assignmentFilter:"current"},JSON.parse(localStorage.getItem(KEY)||"{}"));
+var st=Object.assign({project:0,mode:"mission",checks:{},taskEvidence:{},taskAttempts:{},artifactEvidence:{},modeScores:{},defense:{},mock:{},incident:{},star:{},pattern:{right:0,total:0,index:0},vocab:{},audience:"shareholder",assignmentFilter:"current"},JSON.parse(localStorage.getItem(KEY)||"{}"));
+st.taskEvidence=st.taskEvidence||{};st.taskAttempts=st.taskAttempts||{};st.artifactEvidence=st.artifactEvidence||{};st.modeScores=st.modeScores||{};
 var $=function(s,r){return (r||document).querySelector(s);};
 var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
 var save=function(){localStorage.setItem(KEY,JSON.stringify(st));};
@@ -33,9 +34,10 @@ function patternById(id){return patterns.find(function(x){return x.id===id;})||p
 function checkKey(pr,i){return pr.id+"-"+i;}
 function completed(pr){return stages.filter(function(_,i){return !!st.checks[checkKey(pr,i)];}).length;}
 function g(bucket,pr){return Number((bucket||{})[pr.id]||0);}
-function graduated(pr){return completed(pr)===14&&g(st.defense,pr)>=85;}
+function verifiedArtifacts(pr){var list=artifacts(pr);return list.filter(function(x){var a=st.artifactEvidence[pr.id+"::"+x[0]];return a&&a.verified;}).length;}
+function graduated(pr){return completed(pr)===14&&verifiedArtifacts(pr)===6&&g(st.defense,pr)>=85;}
 function score(pr){
- return Math.round(completed(pr)/14*55+g(st.defense,pr)/100*20+g(st.mock,pr)/100*10+g(st.incident,pr)/100*10+g(st.star,pr)/100*5);
+ return Math.round(completed(pr)/14*45+verifiedArtifacts(pr)/6*10+g(st.defense,pr)/100*20+g(st.mock,pr)/100*10+g(st.incident,pr)/100*10+g(st.star,pr)/100*5);
 }
 function roleScore(){
  var base=projects.reduce(function(n,x){return n+score(x);},0)/projects.length;
@@ -301,6 +303,6 @@ function install(){
  var sec=document.createElement("section");sec.className="view";sec.id="view-sardine";work.appendChild(sec);
  render();
 }
-window.CloudOdysseySardine={projects:projects,patterns:patterns,terms:terms,getState:function(){return st;},render:render,score:roleScore};
+window.CloudOdysseySardine={projects:projects,patterns:patterns,terms:terms,getState:function(){return st;},save:save,render:render,score:roleScore,projectScore:score,completed:completed,graduated:graduated,artifacts:artifacts,verifiedArtifacts:verifiedArtifacts,detail:detail,stages:stages};
 install();
 })();
