@@ -9,7 +9,8 @@ const catalog=[
  {id:"azure",label:"Azure project stage",signal:"azure",minutes:25,threshold:85},
  {id:"databricks",label:"Databricks project stage",signal:"databricks",minutes:25,threshold:85},
  {id:"snowflake",label:"Snowflake project stage",signal:"snowflake",minutes:25,threshold:85},
- {id:"stakeholder",label:"Stakeholder explanation",signal:"stakeholder",minutes:10,threshold:85}
+ {id:"stakeholder",label:"Stakeholder explanation",signal:"stakeholder",minutes:10,threshold:85},
+ {id:"sardine",label:"Sardine risk data/ML mission",signal:"sardine",minutes:30,threshold:85}
 ];
 function recommend(signals={},budget=45){
   budget=Math.max(10,Math.min(180,Number(budget)||45));
