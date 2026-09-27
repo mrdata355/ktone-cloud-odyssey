@@ -427,6 +427,21 @@ function install(){
  let b=document.createElement("button");b.className="nav-item";b.dataset.view="cloud-forge";b.innerHTML="<span>☁</span><b>Cloud + Lakehouse Forge</b><em>20</em>";b.onclick=()=>{CO.setView("cloud-forge");$("#pageTitle").textContent="Cloud + Lakehouse Project Forge";render();};nav.appendChild(b);
  let s=document.createElement("section");s.className="view";s.id="view-cloud-forge";work.appendChild(s);render();
 }
-window.CloudOdysseyCloudForge={projects:projects,getState:()=>st,render:render};
+window.CloudOdysseyCloudForge={
+ projects:projects,
+ getState:()=>st,
+ render:render,
+ launch:function(provider,projectId){
+   if(projects[provider])st.provider=provider;
+   var ps=projects[st.provider]||[];
+   var idx=ps.findIndex(function(x){return x.id===projectId;});
+   st.project=idx>=0?idx:0;
+   st.mode="simulation";
+   save();
+   CO.setView("cloud-forge");
+   var t=document.querySelector("#pageTitle");if(t)t.textContent="Cloud + Lakehouse Project Forge";
+   render();
+ }
+};
 install();
 })();
