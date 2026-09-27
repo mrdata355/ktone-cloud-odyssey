@@ -310,6 +310,13 @@ function improveAccessibility(){
 
 function installFallbackRouting(){
  D.addEventListener("click",function(e){
+   var rich=e.target.closest&&e.target.closest("[data-rich-action]");
+   var actionableRich=rich&&typeof rich.onclick==="function";
+   if(rich&&!actionableRich&&rich.dataset.richAction){
+     e.preventDefault();
+     handleRichAction(rich.dataset.richAction);
+     return;
+   }
    var nav=e.target.closest&&e.target.closest(".nav-item[data-view]");
    if(nav){activate(nav.dataset.view,{silent:true,keepScroll:false});return;}
    var jump=e.target.closest&&e.target.closest("[data-jump]");
