@@ -33,6 +33,7 @@ var viewMeta={
  "backend-forge":{title:"Backend Systems Forge",icon:"⚙",group:"Platform Engineering",desc:"Staff/principal distributed backend architecture and failure semantics"},
  graduation:{title:"Graduation Gate",icon:"◈",group:"Live Readiness",desc:"Mandatory simulation graduation before any live connector access"},
  roadmap:{title:"Product → Business Roadmap",icon:"%",group:"Product Management",desc:"Weighted technical, commercial and scale-readiness roadmap"},
+ "account-sync":{title:"Account & Sync",icon:"◎",group:"Platform",desc:"Authentication, durability, cross-device sync and recovery status"},
  sardine:{title:"Sardine Mission Forge",icon:"◉",group:"Role Campaigns",desc:"Senior fraud data/ML pipelines, Chronon, GCP, modeling, incidents and stakeholder defense"}
 };
 
