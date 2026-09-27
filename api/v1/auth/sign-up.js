@@ -1,0 +1,2 @@
+const p=require("../../_lib/neon_auth_proxy");
+module.exports=async(req,res)=>{try{if(req.method!=="POST"){res.statusCode=405;return res.end();}const b=await p.body(req);const email=String(b.email||"").trim(),password=String(b.password||""),name=String(b.name||email.split("@")[0]||"User").trim();if(!email||password.length<8){res.statusCode=422;return res.end(JSON.stringify({ok:false,error:{message:"Valid email and password of at least 8 characters required"}}));}p.send(res,await p.upstream(req,"/auth/sign-up/email","POST",{email,password,name}));}catch(e){p.fail(res,e);}};
