@@ -116,6 +116,7 @@ async function verifyArtifact(input){
   }});
 }
 async function me(){return request("me");}
+async function schemaStatus(){return request("schema-status");}
 async function saveWorkOrder(work){
   work=work||{};
   return request("work-orders",{method:"PUT",body:{
@@ -154,7 +155,7 @@ async function syncProgress(){
 async function saveEvidence(input){
   return request("evidence",{method:"POST",body:Object.assign({client_id:state.client_id,tenant_id:"personal"},input)});
 }
-window.CloudOdysseyBackend={request:request,health:health,me:me,setAccessToken:setAccessToken,clearAccessToken:clearAccessToken,accessToken:accessToken,startMission:startMission,runMissionTests:runMissionTests,gradeMission:gradeMission,verifyArtifact:verifyArtifact,saveWorkOrder:saveWorkOrder,loadWorkOrders:loadWorkOrders,connectorStatus:connectorStatus,recommendations:recommendations,grade:grade,emit:emit,syncProgress:syncProgress,saveEvidence:saveEvidence,collectSignals:collectSignals,clientId:function(){return state.client_id;}};
+window.CloudOdysseyBackend={request:request,health:health,me:me,schemaStatus:schemaStatus,setAccessToken:setAccessToken,clearAccessToken:clearAccessToken,accessToken:accessToken,startMission:startMission,runMissionTests:runMissionTests,gradeMission:gradeMission,verifyArtifact:verifyArtifact,saveWorkOrder:saveWorkOrder,loadWorkOrders:loadWorkOrders,connectorStatus:connectorStatus,recommendations:recommendations,grade:grade,emit:emit,syncProgress:syncProgress,saveEvidence:saveEvidence,collectSignals:collectSignals,clientId:function(){return state.client_id;}};
 me().then(function(m){document.dispatchEvent(new CustomEvent("odyssey:identity",{detail:m}));}).catch(function(e){document.dispatchEvent(new CustomEvent("odyssey:identity",{detail:{ok:false,error:e.message}}));});
 health().then(function(h){
   var sync=document.querySelector(".sidebar-footer .sync span");
