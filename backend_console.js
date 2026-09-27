@@ -7,7 +7,8 @@ function pretty(x){return JSON.stringify(x,null,2);}
 function log(x){last=x;var el=$("#backendOutput");if(el)el.textContent=pretty(x);}
 function healthClass(h){return h&&h.ok?"good":"warn";}
 async function runHealth(){log({action:"GET /api/v1/health",state:"loading"});log(await B.health(true));render();}
-async function runSmoke(){log({action:"GET /api/v1/smoke",state:"loading"});try{log(await B.request("smoke"));}catch(e){log(e.data||{ok:false,error:e.message});}}\nasync function runPlan(){log({action:"POST /api/v1/recommendations",state:"loading"});try{log(await B.recommendations(45));}catch(e){log(e.data||{ok:false,error:e.message});}}
+async function runSmoke(){log({action:"GET /api/v1/smoke",state:"loading"});try{log(await B.request("smoke"));}catch(e){log(e.data||{ok:false,error:e.message});}}
+async function runPlan(){log({action:"POST /api/v1/recommendations",state:"loading"});try{log(await B.recommendations(45));}catch(e){log(e.data||{ok:false,error:e.message});}}
 async function runGrade(){
  var text=$("#backendGradeText").value.trim();if(!text){CO.toast("Write an answer first");return;}
  log({action:"POST /api/v1/assessments/grade",state:"loading"});
@@ -19,7 +20,8 @@ async function runEvent(){log({action:"POST /api/v1/events",state:"loading"});tr
 function routes(){
  return [
   ["GET","/api/v1/health","Runtime + DB + signing health","REAL"],
-  ["GET","/api/v1/capabilities","Architecture/capability contract","REAL"],\n  ["GET","/api/v1/smoke","Server-side scoring/recommendation diagnostic","REAL"],
+  ["GET","/api/v1/capabilities","Architecture/capability contract","REAL"],
+  ["GET","/api/v1/smoke","Server-side scoring/recommendation diagnostic","REAL"],
   ["POST","/api/v1/recommendations","Adaptive next-best-practice policy","REAL"],
   ["POST","/api/v1/assessments/grade","Server grading + receipt/hash","REAL"],
   ["POST","/api/v1/events","Idempotent append-only event store","DB"],
