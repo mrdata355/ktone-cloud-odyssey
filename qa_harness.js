@@ -92,14 +92,15 @@ function checkModules(){
   ["Pattern Match",!!$("#view-pattern-match")],
   ["Adaptive Ladder",!!$("#view-adaptive-ladder")],
   ["AWS + GCP Forge",!!$("#view-cloud-forge")],
-  ["Button & Backend Map",!!$("#view-action-map")]
+  ["Button & Backend Map",!!$("#view-action-map")],
+  ["Backend Control Plane",!!$("#view-backend")]
  ];
  return expected;
 }
 function checkAssets(){
  var required=[
   "app.js","enterprise.js","reasoning.js","communications.js","speaking.js","elite.js",
-  "coding_forge.js","adaptive_ladder.js","cloud_forge.js","ultra_ui.js","qa_harness.js","action_map.js"
+  "coding_forge.js","adaptive_ladder.js","cloud_forge.js","ultra_ui.js","qa_harness.js","action_map.js","backend_client.js","backend_console.js"
  ];
  var loaded=$$("script[src]").map(function(s){return (s.getAttribute("src")||"").split("/").pop();});
  return required.map(function(x){return {asset:x,ok:loaded.indexOf(x)>=0};});
