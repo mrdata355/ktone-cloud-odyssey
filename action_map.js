@@ -98,6 +98,15 @@ var actions=[
 ["Backend Systems Forge","Run live backend smoke proof","external","Calls /api/v1/smoke and returns live server diagnostics.","REAL Vercel Function execution.","good"],
 ["Graduation Gate","Simulation/Live access matrix","local","Calculates project-level simulation completion, blind-defense grade, and live unlock state.","No project can enter live mode before 12/12 simulation + defense ≥85.","good"],
 ["Graduation Gate","Open project / Continue simulation","nav","Routes directly to the selected Cloud or Backend Forge project.","Preserves mandatory simulation-first mode on entry.","good"],
+["Sardine Mission Forge","23 project selectors + 322 assignments","local","Tracks end-to-end Sardine production work across ingestion, features, ML, KYC/AML, graph, governance and technical direction.","Local simulation evidence until a project passes its blind defense.","good"],
+["Sardine Mission Forge","WHO/WHAT/WHERE/WHEN/WHY views","local","Translates each project into business, ownership, architecture and timing language.","Local role-specific training content.","good"],
+["Sardine Mission Forge","Stakeholder mock discussion","external","Grades shareholder, fraud analyst, backend, DS, ML and compliance explanations on the real server grader.","REAL server-side grading; answer text is sent to Cloud Odyssey grading API.","good"],
+["Sardine Mission Forge","Instant pattern match","local","Tests recognition of 64 production patterns against project incidents.","Local scoring and repetition.","good"],
+["Sardine Mission Forge","Break / Fix incident command","external","Grades end-to-end incident reasoning on the real server grader.","REAL server-side grading; reference stays hidden until requested.","good"],
+["Sardine Mission Forge","STAR Method grade","external","Grades project-specific STAR + WHY stories.","REAL server-side grading.","good"],
+["Sardine Mission Forge","60-term thesaurus mastery","local","Tracks define + contrast + natural-use confidence for production vocabulary.","LocalStorage only.","good"],
+["Sardine Mission Forge","Blind architecture defense","external","Server-grades project architecture defense; 14/14 + ≥85 unlocks live practicum.","REAL server-side grading and mandatory simulation-first gate.","good"],
+["Sardine Mission Forge","Check GCP connector","external","Reads server-side connector state only after project graduation.","REAL backend connector-registry call; does not mutate GCP.","good"],
 ["Cloud + Lakehouse Forge","Simulation / Live mode switch","local","Live mode stays locked until the selected project has 12/12 simulation checkpoints and ≥85 server defense.","Mandatory progression gate; no credential can bypass it.","good"],
 ["Cloud + Lakehouse Forge","Run connector readiness check","external","Calls the server connector registry after simulation graduation.","Reports configured/disconnected truthfully; does not execute provider mutations.","good"],
 ["Backend Systems Forge","Simulation / Live practicum switch","local","Unlocks live control-plane calls only after 12/12 simulation + ≥85 server defense.","Mandatory project graduation gate.","good"],
@@ -158,6 +167,8 @@ function classifyButton(b){
  if(/loadMonaco/.test(id))return ["BROWSER EXECUTION","Monaco loads from CDN into this browser."];
  if(/voice|dictate/i.test(id+txt))return ["DEVICE API","Uses browser speech/microphone support when available."];
  if(/cloudRun|simHealthy|simFault|simRecover|runNotebook|runCode/.test(id))return ["SIMULATION","No production/cloud backend was called."];
+ if(/gradeSDefense|gradeSMock|gradeSIncident|gradeSStar/.test(id))return ["REAL SERVER","Cloud Odyssey grading API was called server-side."];
+ if(/sconnector/.test(id))return ["REAL BACKEND","Connector registry was checked; no provider mutation was executed."];
  if(/printPortfolio/.test(id))return ["BROWSER API","Opened browser print/save flow."];
  if(/copy/i.test(id+b.className+txt))return ["BROWSER API","Clipboard action in this browser."];
  if(/resetProgress/.test(id))return ["LOCAL DESTRUCTIVE","Changes/removes saved browser progress only."];
