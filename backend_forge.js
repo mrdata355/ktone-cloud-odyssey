@@ -2,7 +2,7 @@
 "use strict";
 if(!window.CloudOdyssey||!window.CloudOdysseyBackend){console.error("Backend Forge dependencies missing");return;}
 var CO=window.CloudOdyssey,B=window.CloudOdysseyBackend,KEY="cloud_odyssey_backend_forge_v1";
-var st=Object.assign({project:0,checks:{},grades:{}},JSON.parse(localStorage.getItem(KEY)||"{}"));
+var st=Object.assign({project:0,mode:"simulation",checks:{},grades:{}},JSON.parse(localStorage.getItem(KEY)||"{}"));
 var $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>Array.from((r||document).querySelectorAll(s));
 var save=()=>localStorage.setItem(KEY,JSON.stringify(st));
 var esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -40,20 +40,51 @@ function key(i){return p().id+"-"+i;}
 function done(){return stages.filter((_,i)=>st.checks[key(i)]).length;}
 function gradeVal(){return Number(st.grades[p().id]||0);}
 function render(){
- var root=$("#view-backend-forge");if(!root)return;var pr=p(),completion=Math.round(done()/stages.length*100),grade=gradeVal(),overall=Math.round(completion*.55+grade*.45);
- root.innerHTML='<div class="view-heading"><div><span class="micro">STAFF / PRINCIPAL BACKEND ENGINEERING</span><h2>Backend Systems Forge</h2><p>Build the failure semantics behind serious SaaS and platform systems. Every project forces correctness, concurrency, security, observability, recovery and tradeoff reasoning.</p></div><span class="enterprise-badge">12 PROJECTS • 144 CHECKPOINTS</span></div>'+
- '<div class="backend-forge-shell"><aside class="bf-side glass"><div class="bf-head"><span class="micro">SYSTEM CAMPAIGN</span><h3>Distributed backend patterns</h3><p>Completion is local evidence. Architecture defense is graded by the real server-side assessment API.</p></div><div class="bf-projects">'+projects.map((x,i)=>{var n=stages.filter((_,s)=>st.checks[x.id+"-"+s]).length;return '<button class="bf-project '+(i===st.project?'active ':'')+(n===12?'complete':'')+'" data-bf-project="'+i+'"><span class="ico">'+x.icon+'</span><div><b>'+esc(x.title)+'</b><span>'+esc(x.stack.slice(0,3).join(" • "))+'</span></div><em>'+n+'/12</em></button>';}).join("")+'</div></aside>'+
- '<section class="bf-main glass"><div class="bf-title"><span class="micro">PROJECT '+String(st.project+1).padStart(2,"0")+'</span><h2>'+pr.icon+' '+esc(pr.title)+'</h2><p>'+esc(pr.scenario)+'</p><div class="bf-chips">'+pr.stack.map(x=>'<span class="bf-chip">'+esc(x)+'</span>').join("")+'</div></div>'+
+ var root=$("#view-backend-forge");if(!root)return;
+ var pr=p(),completion=Math.round(done()/stages.length*100),grade=gradeVal(),overall=Math.round(completion*.55+grade*.45),graduated=done()===12&&grade>=85,mode=st.mode||"simulation";
+ if(mode==="live"&&!graduated){st.mode="simulation";mode="simulation";save();}
+ var simMain='<section class="bf-main glass"><div class="bf-title"><span class="micro">PROJECT '+String(st.project+1).padStart(2,"0")+' • SIMULATION</span><h2>'+pr.icon+' '+esc(pr.title)+'</h2><p>'+esc(pr.scenario)+'</p><div class="bf-chips">'+pr.stack.map(x=>'<span class="bf-chip">'+esc(x)+'</span>').join("")+'</div></div>'+
  '<div class="bf-why"><div class="bf-proof"><b>WHY THIS PATTERN</b><p>'+esc(pr.why)+'</p></div><div class="bf-proof"><b>WHY NOT THE SHORTCUT</b><p>'+esc(pr.alt)+'</p></div></div>'+
  '<div class="bf-flow">'+pr.flow.map((x,i)=>'<div class="bf-node"><b>'+esc(x)+'</b><span>'+(i===0?'entry':i===pr.flow.length-1?'business result':'failure boundary')+'</span></div>'+(i<pr.flow.length-1?'<div class="bf-arrow">→</div>':'')).join("")+'</div>'+
- '<div class="bf-checks">'+stages.map((x,i)=>'<label class="bf-check"><input type="checkbox" data-bf-check="'+i+'" '+(st.checks[key(i)]?'checked':'')+'><div><b>'+String(i+1).padStart(2,"0")+'. '+x[0]+'</b><p>'+x[1]+'</p></div><em>+'+Math.round(55/12)+'%</em></label>').join("")+'</div></section>'+
- '<aside class="bf-review glass"><div class="bf-score"><span class="micro">PROJECT EVIDENCE</span><strong>'+overall+'%</strong><span>'+done()+'/12 architecture checkpoints • server defense '+grade+'%</span></div><div class="bf-files"><span class="micro">EXPECTED REPOSITORY ARTIFACTS</span>'+pr.files.map(x=>'<div class="bf-file"><code>'+esc(x[0])+'</code><span>'+esc(x[1])+'</span></div>').join("")+'</div>'+
- '<div class="bf-review-box"><span class="micro">DEFEND THE ARCHITECTURE</span><textarea id="bfAnswer" placeholder="Explain WHO/WHAT/WHERE/WHEN/WHY, failure boundary, rejected alternative, evidence, and rollback..."></textarea><button id="bfGrade">Grade architecture defense on real server</button><button id="bfSmoke" style="background:rgba(255,255,255,.025)">Run live backend smoke proof</button><div id="bfResult" class="bf-result">No server grade yet.</div></div></aside></div>';
- $$("[data-bf-project]").forEach(b=>b.onclick=()=>{st.project=+b.dataset.bfProject;save();render();});
+ '<div class="bf-checks">'+stages.map((x,i)=>'<label class="bf-check"><input type="checkbox" data-bf-check="'+i+'" '+(st.checks[key(i)]?'checked':'')+'><div><b>'+String(i+1).padStart(2,"0")+'. '+x[0]+'</b><p>'+x[1]+'</p></div><em>SIM</em></label>').join("")+'</div></section>';
+ var liveMain='<section class="bf-main glass"><div class="bf-title"><span class="micro">PROJECT '+String(st.project+1).padStart(2,"0")+' • LIVE PRACTICUM</span><h2>⬡ '+esc(pr.title)+'</h2><p>You completed the safe simulation and earned access to the deployed Cloud Odyssey control plane. Use live requests to prove the operational concepts without skipping the simulation phase.</p><div class="bf-chips"><span class="bf-chip">Vercel Functions</span><span class="bf-chip">Request IDs</span><span class="bf-chip">Server grading</span><span class="bf-chip">Capability checks</span></div></div>'+
+ '<div class="bf-live-gate"><span class="micro">GRADUATION VERIFIED</span><div class="bf-live-stats"><div><span>SIMULATION</span><b>'+done()+'/12</b></div><div><span>DEFENSE</span><b>'+grade+'%</b></div><div><span>LIVE ACCESS</span><b>UNLOCKED</b></div></div><p>Live mode is intentionally read-safe first. Persistent mutations only succeed when the durable backend capability is actually configured.</p></div>'+
+ '<div class="bf-live-actions">'+
+   '<button data-bf-live="health"><b>01</b><span>GET /api/v1/health</span><em>runtime + capabilities</em></button>'+
+   '<button data-bf-live="smoke"><b>02</b><span>GET /api/v1/smoke</span><em>server scoring/recommendation proof</em></button>'+
+   '<button data-bf-live="plan"><b>03</b><span>POST /api/v1/recommendations</span><em>adaptive policy</em></button>'+
+   '<button data-bf-live="sync"><b>04</b><span>PUT /api/v1/progress</span><em>durable snapshot if DB enabled</em></button>'+
+   '<button data-bf-live="event"><b>05</b><span>POST /api/v1/events</span><em>idempotent event if DB enabled</em></button>'+
+ '</div><div class="bf-live-output"><div><span class="micro">LIVE REQUEST OUTPUT</span><button id="bfClearLive">clear</button></div><pre id="bfLiveOut">$ choose a live request</pre></div>'+
+ '<div class="bf-live-review"><b>What to explain after every live call</b><p>What crossed the network? Which server boundary handled it? What proves success? What failure would still produce a misleading HTTP 200? What is the rollback/retry/idempotency behavior?</p></div></section>';
+ var review=mode==="simulation"?
+ '<aside class="bf-review glass"><div class="bf-score"><span class="micro">SIMULATION EVIDENCE</span><strong>'+overall+'%</strong><span>'+done()+'/12 architecture checkpoints • server defense '+grade+'%</span></div><div class="bf-files"><span class="micro">EXPECTED REPOSITORY ARTIFACTS</span>'+pr.files.map(x=>'<div class="bf-file"><code>'+esc(x[0])+'</code><span>'+esc(x[1])+'</span></div>').join("")+'</div>'+
+ '<div class="bf-review-box"><span class="micro">BLIND GRADUATION DEFENSE</span><textarea id="bfAnswer" placeholder="Explain WHO/WHAT/WHERE/WHEN/WHY, failure boundary, rejected alternative, evidence, and rollback..."></textarea><button id="bfGrade">Grade architecture defense on real server</button><div id="bfResult" class="bf-result">'+(graduated?'Simulation graduated. Live practicum unlocked.':'Live mode requires 12/12 + defense ≥85.')+'</div></div></aside>':
+ '<aside class="bf-review glass"><div class="bf-score"><span class="micro">LIVE OPERATIONS</span><strong>'+grade+'%</strong><span>simulation graduated • server defense retained</span></div><div class="bf-files"><span class="micro">PROJECT ARTIFACTS TO CONNECT</span>'+pr.files.map(x=>'<div class="bf-file"><code>'+esc(x[0])+'</code><span>'+esc(x[1])+'</span></div>').join("")+'</div><div class="bf-review-box"><span class="micro">RETURN TO SAFE PRACTICE</span><p style="font-size:7px;color:#7f95ae;line-height:1.5">Simulation never disappears. You can return, reset assumptions, inject failures and rehearse again without touching live infrastructure.</p><button id="bfReturnSim">Return to simulation</button></div></aside>';
+ root.innerHTML='<div class="view-heading"><div><span class="micro">SIMULATE → DEFEND → OPERATE LIVE</span><h2>Backend Systems Forge</h2><p>Every live backend practicum is locked until its project simulation is complete and the architecture defense passes.</p></div><span class="enterprise-badge">12 PROJECTS • 144 SIM CHECKPOINTS</span></div>'+
+ '<div class="bf-mode-switch glass"><button class="bf-mode-btn '+(mode==="simulation"?'active':'')+'" data-bf-mode="simulation">01 • Simulation</button><button class="bf-mode-btn '+(mode==="live"?'active ':'')+(graduated?'':'locked')+'" data-bf-mode="live">'+(graduated?'02 • Live Practicum':'🔒 02 • Live Practicum')+'</button><div class="bf-mode-state"><b>'+(graduated?'SIMULATION GRADUATED':'SIMULATION REQUIRED')+'</b><span>'+done()+'/12 • defense '+grade+'%</span></div></div>'+
+ '<div class="backend-forge-shell"><aside class="bf-side glass"><div class="bf-head"><span class="micro">SYSTEM CAMPAIGN</span><h3>Distributed backend patterns</h3><p>Simulation is mandatory. Live controls only appear after graduation.</p></div><div class="bf-projects">'+projects.map((x,i)=>{var n=stages.filter((_,s)=>st.checks[x.id+"-"+s]).length,g=Number(st.grades[x.id]||0),grad=n===12&&g>=85;return '<button class="bf-project '+(i===st.project?'active ':'')+(grad?'complete':'')+'" data-bf-project="'+i+'"><span class="ico">'+x.icon+'</span><div><b>'+esc(x.title)+'</b><span>'+esc(x.stack.slice(0,3).join(" • "))+'</span></div><em>'+(grad?'GRAD':n+'/12')+'</em></button>';}).join("")+'</div></aside>'+
+ (mode==="simulation"?simMain:liveMain)+review+'</div>';
+ $$("[data-bf-project]").forEach(b=>b.onclick=()=>{st.project=+b.dataset.bfProject;st.mode="simulation";save();render();});
+ $$("[data-bf-mode]").forEach(b=>b.onclick=()=>{var next=b.dataset.bfMode;if(next==="live"&&!graduated){CO.toast("Finish all 12 simulation checkpoints and score at least 85 on the blind defense first.");return;}st.mode=next;save();render();});
  $$("[data-bf-check]").forEach(b=>b.onchange=()=>{st.checks[key(+b.dataset.bfCheck)]=b.checked;save();render();});
- $("#bfGrade").onclick=async()=>{var t=$("#bfAnswer").value.trim();if(!t){CO.toast("Defend the design first");return;}$("#bfResult").textContent="Calling server grader...";try{var r=await B.grade(t,pr.required,{type:"backend-forge:"+pr.id,blind:true,duration_ms:90000});st.grades[pr.id]=r.score;save();$("#bfResult").textContent="SERVER GRADE "+r.score+"%\nrequest "+(r.request_id||"—")+"\nverification "+r.verification+"\n"+JSON.stringify(r.dimensions,null,2);}catch(e){$("#bfResult").textContent=(e.data?JSON.stringify(e.data,null,2):e.message);}};
- $("#bfSmoke").onclick=async()=>{try{var r=await B.request("smoke");$("#bfResult").textContent="LIVE BACKEND SMOKE\n"+JSON.stringify(r.checks,null,2);}catch(e){$("#bfResult").textContent=e.message;}};
+ var gradeBtn=$("#bfGrade");if(gradeBtn)gradeBtn.onclick=async()=>{var t=$("#bfAnswer").value.trim();if(!t){CO.toast("Defend the design first");return;}$("#bfResult").textContent="Calling server grader...";try{var r=await B.grade(t,pr.required,{type:"backend-forge:"+pr.id,blind:true,duration_ms:90000});st.grades[pr.id]=r.score;save();$("#bfResult").textContent="SERVER GRADE "+r.score+"%\nrequest "+(r.request_id||"—")+"\nverification "+r.verification+"\n"+JSON.stringify(r.dimensions,null,2);if(done()===12&&r.score>=85)setTimeout(render,450);}catch(e){$("#bfResult").textContent=(e.data?JSON.stringify(e.data,null,2):e.message);}};
+ var returnBtn=$("#bfReturnSim");if(returnBtn)returnBtn.onclick=()=>{st.mode="simulation";save();render();};
+ var clear=$("#bfClearLive");if(clear)clear.onclick=()=>{$("#bfLiveOut").textContent="$ choose a live request";};
+ $$("[data-bf-live]").forEach(btn=>btn.onclick=async()=>{
+   var action=btn.dataset.bfLive,out=$("#bfLiveOut");out.textContent="$ "+action+"\n$ request in flight...";
+   try{
+     var r;
+     if(action==="health")r=await B.health(true);
+     else if(action==="smoke")r=await B.request("smoke");
+     else if(action==="plan")r=await B.recommendations(45);
+     else if(action==="sync")r=await B.syncProgress();
+     else if(action==="event")r=await B.emit("backend.forge.live",{project:pr.id,graduated:true,at:new Date().toISOString()});
+     out.textContent=JSON.stringify(r,null,2);
+   }catch(e){out.textContent=JSON.stringify(e.data||{ok:false,error:e.message},null,2);}
+ });
 }
+
 function install(){
  var nav=$("#nav"),work=$("#workspace");if(!nav||!work)return;
  var b=document.createElement("button");b.className="nav-item";b.dataset.view="backend-forge";b.innerHTML="<span>⚙</span><b>Backend Systems Forge</b><em>23</em>";b.onclick=()=>{CO.setView("backend-forge");$("#pageTitle").textContent="Backend Systems Forge";render();};nav.appendChild(b);
