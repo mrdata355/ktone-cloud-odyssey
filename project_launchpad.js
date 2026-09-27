@@ -78,7 +78,7 @@ function picker(kind){
 }
 function launch(kind,index){
  var s=streams[kind],p=s&&s.projects[index];if(!p)return;
- var work={id:kind+"-"+index,kind:kind,title:p.title,tag:p.tag,scenario:p.scenario,objective:p.objective,files:p.files,accept:p.accept,done:{},view:s.view,startedAt:Date.now()};
+ var work={id:kind+"-"+index,kind:kind,title:p.title,tag:p.tag,scenario:p.scenario,objective:p.objective,files:p.files,accept:p.accept,done:{},artifacts:{},view:s.view,startedAt:Date.now()};
  saveWork(work);closeModal();
  var a=p.launch||{};
  if(a.kind==="match"&&window.CloudOdysseyCodingForge&&window.CloudOdysseyCodingForge.launchMatch)window.CloudOdysseyCodingForge.launchMatch(a.category);
@@ -93,20 +93,83 @@ function launch(kind,index){
  else if(window.CloudOdysseyUI)window.CloudOdysseyUI.activate(s.view);
  setTimeout(function(){renderWorkOrder(true);},30);
 }
+function artifactHint(path){
+ var p=String(path||"").toLowerCase();
+ if(/runbook|incident/.test(p))return "Recovery/operating procedure: detection, evidence, bounded recovery, validation and rollback.";
+ if(/reconcile/.test(p))return "Independent source-to-target business-state reconciliation.";
+ if(/test|fixture/.test(p))return "Automated or repeatable cases proving edge, replay, failure or contract behavior.";
+ if(/monitor|slo|alarm|drift/.test(p))return "Operational evidence: SLOs, metrics, alerts, freshness, latency or drift.";
+ if(/infra|\.tf$/.test(p))return "Infrastructure-as-code for reproducible services, IAM and environment boundaries.";
+ if(/\.sqlx?$/.test(p))return "Versioned SQL implementing a declared business transformation or diagnostic.";
+ if(/\.py$/.test(p))return "Versioned Python implementation for the project behavior.";
+ if(/\.ya?ml$/.test(p))return "Versioned configuration, deployment, policy or workflow contract.";
+ return "Project artifact with a clear owner, purpose and reviewable content.";
+}
+function artifactHTML(work){
+ work.artifacts=work.artifacts||{};
+ return '<div class="pl-artifacts"><div class="pl-artifact-head"><div><b>ARTIFACT VERIFICATION LAB</b><p>Upload each required file. Cloud Odyssey checks the intended repo path, real filename, extension, content signals, what it does, and why it belongs there.</p></div><span>'+Object.values(work.artifacts).filter(function(x){return x&&x.verified;}).length+'/'+work.files.length+' VERIFIED</span></div>'+
+ work.files.map(function(path,i){
+   var a=work.artifacts[path]||{},status=a.verified?"VERIFIED":a.score!=null?("CHECK "+a.score+"%"):"NOT VERIFIED";
+   return '<article class="pl-artifact '+(a.verified?"verified":"")+'" data-artifact-index="'+i+'">'+
+    '<div class="pl-artifact-title"><div><code>'+esc(path)+'</code><p>'+esc(artifactHint(path))+'</p></div><strong>'+status+'</strong></div>'+
+    '<label>INTENDED REPOSITORY PATH<input data-art-path="'+i+'" value="'+esc(path)+'"></label>'+
+    '<label>UPLOAD FILE<input type="file" data-art-file="'+i+'"></label>'+
+    '<label>WHAT DOES THIS FILE DO?<textarea data-art-purpose="'+i+'" placeholder="Explain its job in this project, inputs/outputs and what it proves.">'+esc(a.purpose||"")+'</textarea></label>'+
+    '<label>WHY THIS NAME + FOLDER?<textarea data-art-namewhy="'+i+'" placeholder="Explain why this filename and repository location communicate purpose/ownership.">'+esc(a.naming_reason||"")+'</textarea></label>'+
+    '<div class="pl-artifact-actions"><button data-art-verify="'+i+'">Verify artifact on server</button><span data-art-result="'+i+'">'+(a.message?esc(a.message):"Waiting for evidence")+'</span></div>'+
+   '</article>';
+ }).join("")+'</div>';
+}
+async function verifyArtifact(work,index,el){
+ var expected=work.files[index],fileInput=$('[data-art-file="'+index+'"]',el),file=fileInput&&fileInput.files&&fileInput.files[0];
+ var pathInput=$('[data-art-path="'+index+'"]',el),purposeEl=$('[data-art-purpose="'+index+'"]',el),whyEl=$('[data-art-namewhy="'+index+'"]',el),out=$('[data-art-result="'+index+'"]',el);
+ if(!file){CO.toast("Upload the required file first");return;}
+ if(file.size>120000){CO.toast("Artifact verifier accepts text files up to 120 KB");return;}
+ out.textContent="Reading file...";
+ var content;
+ try{content=await file.text();}catch(e){out.textContent="Could not read file as text";return;}
+ if(!window.CloudOdysseyBackend||!window.CloudOdysseyBackend.verifyArtifact){out.textContent="Backend artifact verifier unavailable";return;}
+ out.textContent="Calling server verifier...";
+ try{
+   var r=await window.CloudOdysseyBackend.verifyArtifact({
+     work_order_id:work.id,
+     expected_path:expected,
+     declared_path:pathInput.value.trim(),
+     file_name:file.name,
+     purpose:purposeEl.value.trim(),
+     naming_reason:whyEl.value.trim(),
+     content:content
+   });
+   var w=getWork();if(!w)return;w.artifacts=w.artifacts||{};
+   w.artifacts[expected]={
+     verified:!!r.verified,score:r.score,artifact_id:r.artifact_id,request_id:r.request_id,
+     content_hash:r.content_hash,purpose:purposeEl.value.trim(),naming_reason:whyEl.value.trim(),
+     dimensions:r.dimensions,message:(r.verified?"Server verified ":"Needs work ")+r.score+"%"
+   };
+   saveWork(w);renderWorkOrder(false);
+   CO.toast(r.verified?"Artifact verified "+r.score+"%":"Artifact needs work "+r.score+"%");
+ }catch(e){out.textContent="Verification failed: "+e.message;}
+}
 function renderWorkOrder(scroll){
  var work=getWork();if(!work)return;
  var target=$("#view-"+work.view);if(!target)return;
  var old=$(".pl-work-order",target);if(old)old.remove();
  var head=$(".view-heading",target);
+ work.artifacts=work.artifacts||{};
  var done=Object.values(work.done||{}).filter(Boolean).length,total=work.accept.length;
+ var verified=Object.values(work.artifacts).filter(function(x){return x&&x.verified;}).length;
+ var ready=done===total&&verified===work.files.length;
  var el=D.createElement("section");el.className="pl-work-order glass";
- el.innerHTML='<div class="pl-work-head"><div><span class="micro">ACTIVE PROJECT WORK ORDER • '+esc(work.tag)+'</span><h3>'+esc(work.title)+'</h3><p>'+esc(work.objective)+'</p></div><div class="pl-progress"><b>'+done+'/'+total+'</b><span>ACCEPTANCE</span></div></div>'+
- '<div class="pl-work-grid"><article><b>SCENARIO</b><p>'+esc(work.scenario)+'</p></article><article><b>FILES YOU SHOULD PRODUCE</b>'+work.files.map(function(f){return '<code>'+esc(f)+'</code>';}).join("")+'</article></div>'+
+ el.innerHTML='<div class="pl-work-head"><div><span class="micro">ACTIVE PROJECT WORK ORDER • '+esc(work.tag)+'</span><h3>'+esc(work.title)+'</h3><p>'+esc(work.objective)+'</p></div><div class="pl-progress"><b>'+done+'/'+total+'</b><span>ACCEPTANCE</span><em>'+verified+'/'+work.files.length+' files</em></div></div>'+
+ '<div class="pl-work-grid"><article><b>SCENARIO</b><p>'+esc(work.scenario)+'</p></article><article><b>FILES YOU MUST PRODUCE</b>'+work.files.map(function(f){var a=work.artifacts[f];return '<code class="'+(a&&a.verified?"verified":"")+'">'+esc(f)+(a&&a.verified?" ✓":"")+'</code>';}).join("")+'</article></div>'+
  '<div class="pl-accept"><b>DEFINITION OF DONE</b>'+work.accept.map(function(x,i){return '<label><input type="checkbox" data-pl-check="'+i+'" '+(work.done&&work.done[i]?"checked":"")+'><span>'+esc(x)+'</span></label>';}).join("")+'</div>'+
- '<div class="pl-work-actions"><button data-pl-action="command">← Command Center</button><button data-pl-action="switch">Choose another project</button><button data-pl-action="clear">Close work order</button></div>';
+ artifactHTML(work)+
+ '<div class="pl-final-gate '+(ready?"ready":"")+'"><b>'+(ready?"READY FOR FINAL PROJECT DEFENSE":"FINAL PROJECT GATE LOCKED")+'</b><p>'+(ready?"All acceptance criteria and required artifacts are verified. Complete the destination module grader/defense to close the project.":"Complete every acceptance criterion and verify every required artifact before claiming project completion.")+'</p></div>'+
+ '<div class="pl-work-actions"><button data-pl-action="command">← Command Center</button><button data-pl-action="destination">Jump to exercise ↓</button><button data-pl-action="switch">Choose another project</button><button data-pl-action="clear">Close work order</button></div>';
  if(head)head.insertAdjacentElement("afterend",el);else target.prepend(el);
  $$("[data-pl-check]",el).forEach(function(cb){cb.onchange=function(){var w=getWork();if(!w)return;w.done=w.done||{};w.done[cb.dataset.plCheck]=cb.checked;saveWork(w);renderWorkOrder(false);if(Object.values(w.done).filter(Boolean).length===w.accept.length)CO.toast("Project work order complete • now prove it in the module grader");};});
  var c=$('[data-pl-action="command"]',el);if(c)c.onclick=function(){window.CloudOdysseyUI?window.CloudOdysseyUI.activate("command"):CO.setView("command");};
+ var dst=$('[data-pl-action="destination"]',el);if(dst)dst.onclick=function(){el.scrollIntoView({behavior:"smooth",block:"end"});setTimeout(function(){window.scrollBy({top:Math.max(380,window.innerHeight*.55),behavior:"smooth"});},180);};
  var sw=$('[data-pl-action="switch"]',el);if(sw)sw.onclick=function(){picker(work.kind);};
  var cl=$('[data-pl-action="clear"]',el);if(cl)cl.onclick=function(){localStorage.removeItem(KEY);el.remove();};
  if(scroll)el.scrollIntoView({behavior:"smooth",block:"start"});
