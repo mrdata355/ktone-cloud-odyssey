@@ -385,7 +385,24 @@ window.CloudOdysseyCodingForge={
   patterns:patterns,
   challenges:challenges,
   getState:function(){return st;},
-  save:save
+  save:save,
+  launchChallenge:function(index,mode){
+    st.mode=mode||"build";
+    st.category="all";
+    st.index=Math.max(0,Math.min(challenges.length-1,Number(index)||0));
+    save();
+    CO.setView("coding-forge");
+    var t=$("#pageTitle");if(t)t.textContent="Elite Coding Forge";
+    renderForge();
+  },
+  launchMatch:function(category){
+    st.match.category=category||"problem";
+    st.match.matched={};st.match.correct=0;st.match.wrong=0;
+    save();
+    CO.setView("pattern-match");
+    var t=$("#pageTitle");if(t)t.textContent="Pattern Match Arena";
+    renderMatch();
+  }
 };
 install();
 })();
