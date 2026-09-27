@@ -212,5 +212,19 @@ function install(){
  var sec=document.createElement("section");sec.className="view";sec.id="view-stakeholder";work.appendChild(sec);render();addLabShortcut();
  new MutationObserver(function(){addLabShortcut();}).observe(document.body,{childList:true,subtree:true});
 }
+window.CloudOdysseyComms={
+ audiences:audiences,
+ getState:function(){return state;},
+ launch:function(opts){
+   opts=opts||{};
+   if(opts.audience&&audiences[opts.audience])state.audience=opts.audience;
+   state.context=opts.context||"active";
+   state.tab=opts.tab||"talk";
+   save();
+   CO.setView("stakeholder");
+   var t=$("#pageTitle");if(t)t.textContent="Stakeholder Room";
+   render();
+ }
+};
 install();
 })();
