@@ -48,6 +48,7 @@ function collectSignals(){
   if(ent.deepChecks){var vals=Object.values(ent.deepChecks);signals.recovery=vals.length?Math.round(vals.filter(Boolean).length/120*100):0;}
   return signals;
 }
+async function connectorStatus(){return request("connectors/status");}
 async function recommendations(budget){return request("recommendations",{method:"POST",body:{signals:collectSignals(),budget_minutes:budget||45}});}
 async function grade(answer,required,meta){
   return request("assessments/grade",{method:"POST",body:{
@@ -74,7 +75,7 @@ async function syncProgress(){
 async function saveEvidence(input){
   return request("evidence",{method:"POST",body:Object.assign({client_id:state.client_id,tenant_id:"personal"},input)});
 }
-window.CloudOdysseyBackend={request:request,health:health,recommendations:recommendations,grade:grade,emit:emit,syncProgress:syncProgress,saveEvidence:saveEvidence,collectSignals:collectSignals,clientId:function(){return state.client_id;}};
+window.CloudOdysseyBackend={request:request,health:health,connectorStatus:connectorStatus,recommendations:recommendations,grade:grade,emit:emit,syncProgress:syncProgress,saveEvidence:saveEvidence,collectSignals:collectSignals,clientId:function(){return state.client_id;}};
 health().then(function(h){
   var sync=document.querySelector(".sidebar-footer .sync span");
   if(sync)sync.textContent=h.ok?(h.persistence&&h.persistence.ok?"Backend + Postgres online":"Backend API online • persistence pending"):"Backend unreachable • local mode";
