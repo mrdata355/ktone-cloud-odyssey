@@ -1,0 +1,37 @@
+
+.skill-practice-section{margin-top:14px;padding:15px;border-radius:18px}
+.skill-practice-section .section-head p{margin:6px 0 0;color:#8295aa;font-size:9px;line-height:1.5}
+.skill-practice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:12px}
+.skill-practice-card{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.018)}
+.skill-practice-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.skill-practice-top span{display:block;font-size:7px;letter-spacing:.11em;color:#70dffc}
+.skill-practice-top h4{margin:5px 0 6px;color:#e7f4ff;font-size:13px}
+.skill-practice-top strong{font-size:20px;color:#d9f4ff}
+.skill-practice-card p{margin:0;color:#8194aa;font-size:9px;line-height:1.48}
+.skill-practice-actions,.matrix-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.skill-practice-actions button,.matrix-actions button,.signal-practice{padding:7px 9px;border-radius:8px;border:1px solid rgba(86,214,255,.15);background:rgba(55,184,229,.05);color:#cfefff;font-size:8px}
+#skillsMatrix .skill-row{display:grid;grid-template-columns:minmax(110px,1fr) minmax(120px,1.6fr) 48px auto;gap:9px;align-items:center}
+#skillsMatrix .skill-row .matrix-actions{margin:0;justify-content:flex-end}
+#skillsMatrix .skill-row .matrix-actions button{padding:6px 7px}
+.signal-practice{margin-top:8px}
+.skill-drill-prompt{margin:10px 0;padding:11px;border-radius:12px;border:1px solid rgba(93,215,255,.1);background:rgba(255,255,255,.018);color:#a9bacb;font-size:10px;line-height:1.55}
+#skillDrillAnswer{box-sizing:border-box;width:100%;min-height:240px;padding:12px;border-radius:12px;border:1px solid rgba(101,178,222,.12);background:#06101c;color:#e0efff;font:10px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;resize:vertical}
+.skill-drill-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.skill-drill-actions button{padding:9px 10px;border-radius:9px;border:1px solid rgba(85,219,255,.18);background:linear-gradient(135deg,rgba(51,182,234,.1),rgba(82,88,255,.07));color:#ddf8ff;font-size:8px}
+#skillDrillResult{margin-top:9px;padding:9px;border-radius:9px;background:#07111d;color:#83a9bb;font-size:9px}
+.skill-drill-sequence{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.skill-drill-sequence b{grid-column:1/-1;font-size:8px;letter-spacing:.1em;color:#7d92aa}
+.skill-drill-sequence span{padding:7px;border-radius:8px;background:rgba(255,255,255,.018);border:1px solid rgba(255,255,255,.04);font-size:8px;color:#8fa3b8}
+@media(max-width:900px){
+ #skillsMatrix .skill-row{grid-template-columns:1fr 1fr 42px}
+ #skillsMatrix .skill-row .matrix-actions{grid-column:1/-1;justify-content:flex-start}
+ .skill-practice-grid{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+ #skillsMatrix .skill-row{grid-template-columns:1fr 70px}
+ #skillsMatrix .skill-row .skill-track{grid-column:1/-1}
+ #skillsMatrix .skill-row .matrix-actions{grid-column:1/-1}
+ .matrix-actions button{flex:1}
+ .skill-drill-sequence{grid-template-columns:1fr}
+ #skillDrillAnswer{min-height:220px}
+}
