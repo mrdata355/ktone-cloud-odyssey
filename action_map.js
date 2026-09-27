@@ -6,6 +6,9 @@ var CO=window.CloudOdyssey,D=document,$=(s,r=D)=>r.querySelector(s),$$=(s,r=D)=>
 var esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 var actions=[
+["Sardine Mission Forge","Evidence-graded assignments","external","Manual mission checkboxes are disabled; Start Assignment opens a WHO/WHAT/WHERE/WHEN/WHY task and ≥85 server grade marks the stage complete.","Real assessment API + local evidence state.","good"],
+["Sardine Mission Forge","Project artifact verification","external","Six required files are uploaded from the browser and verified for expected path, filename, content signals, purpose and naming rationale.","Real artifact verifier API; no raw file is persisted by this UI.","good"],
+["Sardine Mission Forge","Interactive Five Ws / Model / Tradeoffs / Coverage","external","Turns formerly informational role views into graded practice; KPI and coverage cards route into relevant work.","Real assessment API for typed defenses; navigation remains local.","good"],
 ["Incident War Room","Generate / Next incident","local","Loads the next unsolved incident, locks Next until the current case is solved, and restores mastered cases as complete.","Local mastery state + Elite proficiency signal; no production mutation.","good"],
 ["Incident War Room","Incident choices","local","Records attempts, accuracy, streak, unique case mastery and +120 XP on first completion; wrong answers stay on the same case for retry.","Local mastery evidence; included in Elite Readiness.","good"],
 ["Interaction Integrity","Automatic full-app audit","local","Scans every rendered button after view changes and DOM mutations, repairs standard routes, and reports wired/total controls in the system status strip.","Runtime guard against silent dead-button regressions.","good"],
