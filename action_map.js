@@ -6,6 +6,10 @@ var CO=window.CloudOdyssey,D=document,$=(s,r=D)=>r.querySelector(s),$$=(s,r=D)=>
 var esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 var actions=[
+["Skills Matrix","Practice / Explain / Prove","external","Launches the best matching hands-on exercise or opens a WHO/WHAT/WHERE/WHEN/WHY drill with server grading.","Hands-on routes preserve each module execution boundary; Explain/Prove uses the real assessment API.","good"],
+["Delta Performance","Hands-On lab","external","Runs local concept checks and can submit the answer to the real server assessment grader.","Real server grading; physical Databricks execution remains simulated until a live connector/sandbox is enabled.","good"],
+["Delta Performance","Decision Match","local","Trains symptom-to-optimization recognition across pruning, pushdown, OPTIMIZE, Z-Ordering, Liquid Clustering, VACUUM and skew.","Local rapid-recognition score.","good"],
+["Delta Performance","Architecture Defense","external","Server-grades the end-to-end physical optimization design and tradeoffs.","Real server assessment API.","good"],
 ["Account & Sync","Refresh status","external","Calls /health, /me and durable work-order status to distinguish API, Postgres and authentication readiness.","Real backend read; no mutation.","good"],
 ["Account & Sync","Sync proficiency now","external","Writes the current proficiency snapshot when Postgres is configured.","Real backend persistence; returns an explicit non-persisted message when DATABASE_URL is absent.","good"],
 ["Account & Sync","Export local recovery snapshot","local","Exports Cloud Odyssey localStorage state as a recovery JSON file.","Local browser operation; useful before auth/database migration.","good"],
