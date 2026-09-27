@@ -15,6 +15,7 @@ module.exports=api(async()=>{
     endpoints:[
       {method:"GET",path:"/api/v1/health",class:"real backend"},
       {method:"GET",path:"/api/v1/capabilities",class:"real backend"},
+      {method:"GET",path:"/api/v1/smoke",class:"real backend diagnostic"},
       {method:"POST",path:"/api/v1/recommendations",class:"real backend"},
       {method:"POST",path:"/api/v1/assessments/grade",class:"real backend"},
       {method:"POST",path:"/api/v1/events",class:"persistent when DATABASE_URL configured"},
