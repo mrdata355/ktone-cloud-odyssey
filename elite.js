@@ -85,13 +85,16 @@ function otherSignals(){
  if(cloud.checks){
    var keys=Object.keys(cloud.checks);
    function platformScore(prefix,projectCount){
-     var done=keys.filter(function(k){return k.indexOf(prefix+"-")===0&&cloud.checks[k];}).length;
-     var v=Math.min(100,Math.round(done/(12*projectCount)*85));
-     if(cloud.evidence){
-       var ev=Object.keys(cloud.evidence).filter(function(k){return k.indexOf(prefix+"-")===0&&(cloud.evidence[k]||"").trim().length>30;}).length;
-       v=Math.min(100,v+Math.round(ev/projectCount*15));
-     }
-     return v;
+     var checks=cloud.checks||{},grades=cloud.simGrades||{},evidence=cloud.evidence||{};
+     var done=keys.filter(function(k){return k.indexOf(prefix+"-")===0&&checks[k];}).length;
+     var gradeKeys=Object.keys(grades).filter(function(k){return k.indexOf(prefix+"-")===0;});
+     var gradeTotal=gradeKeys.reduce(function(n,k){return n+Math.min(100,Number(grades[k])||0);},0);
+     var liveEvidence=Object.keys(evidence).filter(function(projectKey){
+       if(projectKey.indexOf(prefix+"-")!==0||(evidence[projectKey]||"").trim().length<=30)return false;
+       var stageDone=Object.keys(checks).filter(function(k){return k.indexOf(projectKey+"-")===0&&checks[k];}).length;
+       return stageDone===12&&(Number(grades[projectKey])||0)>=85;
+     }).length;
+     return Math.min(100,Math.round(done/(12*projectCount)*70+(gradeTotal/(projectCount*100))*15+(liveEvidence/projectCount)*15));
    }
    aws=platformScore("aws",12);
    gcp=platformScore("gcp",12);
