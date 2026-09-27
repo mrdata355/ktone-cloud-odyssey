@@ -41,7 +41,7 @@ async function health(force){
 }
 function avg(xs){return xs.length?Math.round(xs.reduce(function(a,b){return a+b;},0)/xs.length):0;}
 function collectSignals(){
-  var signals={missions:0,projects:0,coding:0,transfer:0,recovery:0,vocab:0,star:0,aws:0,gcp:0,azure:0,databricks:0,snowflake:0,stakeholder:0,backend:0,sardine:0};
+  var signals={missions:0,projects:0,coding:0,transfer:0,recovery:0,vocab:0,star:0,aws:0,gcp:0,azure:0,databricks:0,snowflake:0,stakeholder:0,backend:0,sardine:0,delta:0,skills:0};
   var base=parseStore("cloud_odyssey_enterprise_v3");
   signals.missions=Math.min(100,Math.round(Object.values(base.done||{}).filter(Boolean).length/30*100));
   signals.projects=Math.min(100,Math.round(Object.values(base.checks||{}).filter(Boolean).length/60*100));
@@ -77,6 +77,14 @@ function collectSignals(){
   var sPattern=sardine.pattern&&sardine.pattern.total?Number(sardine.pattern.right||0)/Number(sardine.pattern.total)*100:0;
   var sVocab=Object.values(sardine.vocab||{}).filter(Boolean).length/60*100;
   signals.sardine=Math.min(100,Math.round(sCore*.9+sPattern*.05+sVocab*.05));
+  var delta=parseStore("cloud_odyssey_delta_mastery_v1");
+  var dChecks=Object.values(delta.checks||{}).filter(Boolean).length/10*45;
+  var dGrades=Object.values(delta.grades||{});var dGrade=dGrades.length?avg(dGrades.map(function(x){return Number(x)||0;})):0;
+  var dMatch=delta.match&&delta.match.total?Number(delta.match.right||0)/Number(delta.match.total)*100:0;
+  signals.delta=Math.min(100,Math.round(dChecks+dGrade*.30+dMatch*.15+(Number(delta.defense)||0)*.10));
+  var skillPractice=parseStore("cloud_odyssey_skill_practice_v1"),skillScores=[];
+  Object.keys(skillPractice).forEach(function(k){var x=skillPractice[k];if(!x||typeof x!=="object")return;if(x.explainScore!=null)skillScores.push(Number(x.explainScore)||0);if(x.proveScore!=null)skillScores.push(Number(x.proveScore)||0);});
+  signals.skills=skillScores.length?avg(skillScores):0;
   var comm=parseStore("cloud_odyssey_comms_v1");
   if(comm.scores){signals.stakeholder=avg(Object.values(comm.scores).map(function(x){return Number(x&&x.score)||0;}));}
   var speaking=parseStore("cloud_odyssey_speaking_v1");
