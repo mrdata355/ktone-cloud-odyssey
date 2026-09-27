@@ -112,7 +112,8 @@ function checkModules(){
   ["Backend Systems Forge",!!$("#view-backend-forge")],
   ["Graduation Gate",!!$("#view-graduation")],
   ["Sardine Mission Forge",!!$("#view-sardine")],
-  ["Project Launchpad",!!window.CloudOdysseyProjectLaunchpad]
+  ["Project Launchpad",!!window.CloudOdysseyProjectLaunchpad],
+  ["Artifact verifier API client",!!(window.CloudOdysseyBackend&&window.CloudOdysseyBackend.verifyArtifact)]
  ];
  return expected;
 }
