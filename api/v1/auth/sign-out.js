@@ -1,0 +1,2 @@
+const p=require("../../_lib/neon_auth_proxy");
+module.exports=async(req,res)=>{try{if(req.method!=="POST"){res.statusCode=405;return res.end();}p.send(res,await p.upstream(req,"/auth/sign-out","POST",{}));}catch(e){p.fail(res,e);}};
