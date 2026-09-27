@@ -105,11 +105,11 @@ function otherSignals(){
  }
  var sardineScore=0;
  if(sardine.checks||sardine.defense||sardine.mock||sardine.incident||sardine.star){
-   var stask=Object.values(sardine.checks||{}).filter(Boolean).length/322*55;
-   var sdef=Object.values(sardine.defense||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(23*100)*20;
-   var smock=Object.values(sardine.mock||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(23*100)*10;
-   var sinc=Object.values(sardine.incident||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(23*100)*10;
-   var sstar=Object.values(sardine.star||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(23*100)*5;
+   var stask=Object.values(sardine.checks||{}).filter(Boolean).length/350*55;
+   var sdef=Object.values(sardine.defense||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(25*100)*20;
+   var smock=Object.values(sardine.mock||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(25*100)*10;
+   var sinc=Object.values(sardine.incident||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(25*100)*10;
+   var sstar=Object.values(sardine.star||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/(25*100)*5;
    var scoreCore=stask+sdef+smock+sinc+sstar;
    var spat=sardine.pattern&&sardine.pattern.total?(Number(sardine.pattern.right||0)/Number(sardine.pattern.total)*100):0;
    var svocab=Object.values(sardine.vocab||{}).filter(Boolean).length/60*100;
