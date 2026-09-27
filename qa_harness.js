@@ -91,18 +91,19 @@ function checkModules(){
   ["Coding Forge",!!$("#view-coding-forge")],
   ["Pattern Match",!!$("#view-pattern-match")],
   ["Adaptive Ladder",!!$("#view-adaptive-ladder")],
-  ["AWS + GCP Forge",!!$("#view-cloud-forge")],
+  ["Cloud + Lakehouse Forge",!!$("#view-cloud-forge")],
   ["Button & Backend Map",!!$("#view-action-map")],
   ["Backend Control Plane",!!$("#view-backend")],
   ["Backend Systems Forge",!!$("#view-backend-forge")],
-  ["Graduation Gate",!!$("#view-graduation")]
+  ["Graduation Gate",!!$("#view-graduation")],
+  ["Sardine Mission Forge",!!$("#view-sardine")]
  ];
  return expected;
 }
 function checkAssets(){
  var required=[
   "app.js","enterprise.js","reasoning.js","communications.js","speaking.js","elite.js",
-  "coding_forge.js","adaptive_ladder.js","cloud_forge.js","ultra_ui.js","qa_harness.js","action_map.js","backend_client.js","backend_console.js","backend_forge.js","graduation_gate.js"
+  "coding_forge.js","adaptive_ladder.js","cloud_forge.js","ultra_ui.js","qa_harness.js","action_map.js","backend_client.js","backend_console.js","backend_forge.js","graduation_gate.js","sardine_data.js","sardine_forge.js"
  ];
  var loaded=$$("script[src]").map(function(s){return (s.getAttribute("src")||"").split("/").pop();});
  return required.map(function(x){return {asset:x,ok:loaded.indexOf(x)>=0};});
