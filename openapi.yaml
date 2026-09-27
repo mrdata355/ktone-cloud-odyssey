@@ -26,6 +26,13 @@ paths:
       responses:
         "200":
           description: Executes grading, recommendation, and hashing checks server-side
+  /api/v1/connectors/status:
+    get:
+      summary: Read live connector configuration state
+      description: Returns configuration/validation state only. Secret values are never returned. Live project use remains gated by simulation graduation in the client learning workflow.
+      responses:
+        "200":
+          description: Provider connector registry and safety policy
   /api/v1/recommendations:
     post:
       summary: Generate next-best-practice plan
