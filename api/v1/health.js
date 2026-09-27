@@ -6,7 +6,7 @@ module.exports=api(async(req,res,ctx)=>{
   return {body:{
     ok:true,
     service:"cloud-odyssey-control-plane",
-    version:"3.0.0",
+    version:"3.1.0",
     runtime:process.version,
     environment:process.env.VERCEL_ENV||"local",
     commit:(process.env.VERCEL_GIT_COMMIT_SHA||"local").slice(0,12),
@@ -16,6 +16,9 @@ module.exports=api(async(req,res,ctx)=>{
     verification:{assessment_signing:Boolean(process.env.ASSESSMENT_SIGNING_SECRET)},
     capabilities:{
       stateless_grading:true,
+      mission_sessions:true,
+      mission_server_tests:true,
+      authoritative_mission_grading:true,
       adaptive_recommendations:true,
       durable_progress:database.configured&&database.ok,
       durable_events:database.configured&&database.ok,
