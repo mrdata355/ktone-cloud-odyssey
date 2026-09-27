@@ -16,7 +16,7 @@ function clearAccessToken(){setAccessToken("");}
 async function request(path,opts){
   opts=opts||{};
   var headers=Object.assign({"Content-Type":"application/json","X-Client-Id":state.client_id},opts.headers||{});var tok=accessToken();if(tok)headers.Authorization="Bearer "+tok;
-  var res=await fetch("/api/v1/"+path,{method:opts.method||"GET",headers:headers,body:opts.body===undefined?undefined:JSON.stringify(opts.body)});
+  var res=await fetch("/api/v1/"+path,{method:opts.method||"GET",headers:headers,credentials:"same-origin",body:opts.body===undefined?undefined:JSON.stringify(opts.body)});
   var data={};try{data=await res.json();}catch(e){data={ok:false,error:{message:"Invalid API response"}};}
   data.http_status=res.status;data.request_id=data.request_id||res.headers.get("x-request-id");
   if(!res.ok)throw Object.assign(new Error((data.error&&data.error.message)||"API request failed"),{status:res.status,data:data});
@@ -115,6 +115,26 @@ async function verifyArtifact(input){
     content:input.content
   }});
 }
+async function authSession(){
+  try{
+    var r=await request("auth/session");
+    if(r&&r.access_token)setAccessToken(r.access_token);else clearAccessToken();
+    return r;
+  }catch(e){clearAccessToken();throw e;}
+}
+async function authSignIn(email,password){
+  var r=await request("auth/sign-in",{method:"POST",body:{email:email,password:password}});
+  await authSession();return r;
+}
+async function authSignUp(name,email,password){
+  var r=await request("auth/sign-up",{method:"POST",body:{name:name,email:email,password:password}});
+  try{await authSession();}catch(e){}
+  return r;
+}
+async function authSignOut(){
+  try{return await request("auth/sign-out",{method:"POST",body:{}});}
+  finally{clearAccessToken();}
+}
 async function me(){return request("me");}
 async function schemaStatus(){return request("schema-status");}
 async function saveWorkOrder(work){
@@ -155,11 +175,13 @@ async function syncProgress(){
 async function saveEvidence(input){
   return request("evidence",{method:"POST",body:Object.assign({client_id:state.client_id,tenant_id:"personal"},input)});
 }
-window.CloudOdysseyBackend={request:request,health:health,me:me,schemaStatus:schemaStatus,setAccessToken:setAccessToken,clearAccessToken:clearAccessToken,accessToken:accessToken,startMission:startMission,runMissionTests:runMissionTests,gradeMission:gradeMission,verifyArtifact:verifyArtifact,saveWorkOrder:saveWorkOrder,loadWorkOrders:loadWorkOrders,connectorStatus:connectorStatus,recommendations:recommendations,grade:grade,emit:emit,syncProgress:syncProgress,saveEvidence:saveEvidence,collectSignals:collectSignals,clientId:function(){return state.client_id;}};
-me().then(function(m){document.dispatchEvent(new CustomEvent("odyssey:identity",{detail:m}));}).catch(function(e){document.dispatchEvent(new CustomEvent("odyssey:identity",{detail:{ok:false,error:e.message}}));});
-health().then(function(h){
+window.CloudOdysseyBackend={request:request,health:health,me:me,schemaStatus:schemaStatus,authSession:authSession,authSignIn:authSignIn,authSignUp:authSignUp,authSignOut:authSignOut,setAccessToken:setAccessToken,clearAccessToken:clearAccessToken,accessToken:accessToken,startMission:startMission,runMissionTests:runMissionTests,gradeMission:gradeMission,verifyArtifact:verifyArtifact,saveWorkOrder:saveWorkOrder,loadWorkOrders:loadWorkOrders,connectorStatus:connectorStatus,recommendations:recommendations,grade:grade,emit:emit,syncProgress:syncProgress,saveEvidence:saveEvidence,collectSignals:collectSignals,clientId:function(){return state.client_id;}};
+health().then(async function(h){
   var sync=document.querySelector(".sidebar-footer .sync span");
   if(sync)sync.textContent=h.ok?(h.persistence&&h.persistence.ok?"Backend + Postgres online":"Backend API online • persistence pending"):"Backend unreachable • local mode";
   document.dispatchEvent(new CustomEvent("odyssey:backend-health",{detail:h}));
+  if(h&&h.auth&&h.auth.configured){try{await authSession();}catch(e){}}
+  try{var m=await me();document.dispatchEvent(new CustomEvent("odyssey:identity",{detail:m}));}
+  catch(e){document.dispatchEvent(new CustomEvent("odyssey:identity",{detail:{ok:false,error:e.message}}));}
 });
 })();
