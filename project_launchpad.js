@@ -1,7 +1,7 @@
 (function(){
 "use strict";
 if(!window.CloudOdyssey){console.error("Project Launchpad requires CloudOdyssey");return;}
-var CO=window.CloudOdyssey,D=document,KEY="cloud_odyssey_active_work_v1",syncTimer=null;
+var CO=window.CloudOdyssey,D=document,KEY="cloud_odyssey_active_work_v1",HISTORY_KEY="cloud_odyssey_project_history_v1",syncTimer=null;
 var $=function(s,r){return (r||D).querySelector(s);};
 var $$=function(s,r){return Array.prototype.slice.call((r||D).querySelectorAll(s));};
 var esc=function(s){return String(s||"").replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});};
@@ -65,6 +65,27 @@ var streams={
 };
 
 function getWork(){try{return JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){return null;}}
+function getHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||"{}");}catch(e){return {};}}
+function saveHistory(h){localStorage.setItem(HISTORY_KEY,JSON.stringify(h||{}));}
+function projectStatus(w){
+ if(!w)return "NOT STARTED";
+ if(w.completed)return "COMPLETE";
+ if(w.defensePassed)return "DEFENSE PASSED";
+ if(workReady(w))return "READY";
+ if(w.exercisePassed)return "CODE PASSED";
+ return "IN PROGRESS";
+}
+function updateHistory(w){if(!w||!w.id)return;var h=getHistory();h[w.id]=JSON.parse(JSON.stringify(w));saveHistory(h);}
+function projectIndex(work){return Number(work&&work.index)||0;}
+function defenseTerms(work){
+ var map={
+  "build-0":["row_number","event_time","event_version","distinct","deterministic","validation","rollback"],
+  "build-1":["skew","broadcast","aqe","salting","shuffle","evidence","validation"],
+  "build-2":["merge","inventory_id","matched","not matched","idempotent","bounded","replay"],
+  "build-3":["explain","scan","cardinality","join","sort","prune","cost","evidence"]
+ };
+ return map[work.id]||["why","evidence","validation","rollback","tradeoff"];
+}
 function workReady(w){
   if(!w)return false;
   var accepts=Array.isArray(w.accept)?w.accept.length:0,done=Object.values(w.done||{}).filter(Boolean).length;
@@ -83,7 +104,7 @@ function syncWork(w){
     }).catch(function(){});
   },450);
 }
-function saveWork(w){w.updatedAt=Date.now();localStorage.setItem(KEY,JSON.stringify(w));syncWork(w);}
+function saveWork(w){w.updatedAt=Date.now();localStorage.setItem(KEY,JSON.stringify(w));updateHistory(w);syncWork(w);}
 async function hydrateWork(){
   var api=window.CloudOdysseyBackend;if(!api||!api.loadWorkOrders)return;
   try{
@@ -101,8 +122,13 @@ async function hydrateWork(){
 function closeModal(){var m=$("#modal");if(m)m.classList.add("hidden");}
 function picker(kind){
  var s=streams[kind];if(!s)return;
+ var history=getHistory();
  var body='<div class="pl-intro"><p>Pick a concrete project. Cloud Odyssey will carry the work order into the destination module instead of dropping you on a generic screen.</p></div><div class="pl-project-grid">'+
- s.projects.map(function(p,i){return '<article class="pl-project-card"><span>'+esc(p.tag)+'</span><h3>'+esc(p.title)+'</h3><p>'+esc(p.scenario)+'</p><div class="pl-mini"><b>OBJECTIVE</b><p>'+esc(p.objective)+'</p></div><button data-pl-launch="'+kind+':'+i+'">Launch work order →</button></article>';}).join("")+'</div>';
+ s.projects.map(function(p,i){
+   var rec=history[kind+"-"+i],status=projectStatus(rec),score=rec&&rec.exerciseScore!=null?(" • code "+rec.exerciseScore+"%"):"",def=rec&&rec.defenseScore!=null?(" • defense "+rec.defenseScore+"%"):"";
+   var label=rec?(rec.completed?"Review completed project →":"Resume work order →"):"Launch work order →";
+   return '<article class="pl-project-card '+(rec&&rec.completed?"complete":"")+'"><div class="pl-card-status"><span>'+esc(p.tag)+'</span><strong>'+status+score+def+'</strong></div><h3>'+esc(p.title)+'</h3><p>'+esc(p.scenario)+'</p><div class="pl-mini"><b>OBJECTIVE</b><p>'+esc(p.objective)+'</p></div><button data-pl-launch="'+kind+':'+i+'">'+label+'</button></article>';
+ }).join("")+'</div>';
  var modal=$("#modal"),content=$("#modalContent");if(!modal||!content)return;
  content.innerHTML='<span class="micro">'+esc(s.kicker)+'</span><h2>'+esc(s.label)+' Projects</h2>'+body;
  modal.classList.remove("hidden");
@@ -111,9 +137,10 @@ function picker(kind){
 }
 function launch(kind,index){
  var s=streams[kind],p=s&&s.projects[index];if(!p)return;
- var work={id:kind+"-"+index,kind:kind,title:p.title,tag:p.tag,scenario:p.scenario,objective:p.objective,files:p.files,accept:p.accept,done:{},artifacts:{},view:s.view,startedAt:Date.now()};
+ var id=kind+"-"+index,history=getHistory(),prev=history[id]||null,a=p.launch||{};
+ var work=Object.assign({id:id,kind:kind,index:index,title:p.title,tag:p.tag,scenario:p.scenario,objective:p.objective,files:p.files,accept:p.accept,done:{},artifacts:{},view:s.view,startedAt:Date.now(),launch:a,exerciseScore:null,exercisePassed:false,defenseScore:null,defensePassed:false,completed:false},prev||{});
+ work.id=id;work.kind=kind;work.index=index;work.title=p.title;work.tag=p.tag;work.scenario=p.scenario;work.objective=p.objective;work.files=p.files;work.accept=p.accept;work.view=s.view;work.launch=a;
  saveWork(work);closeModal();
- var a=p.launch||{};
  if(a.kind==="match"&&window.CloudOdysseyCodingForge&&window.CloudOdysseyCodingForge.launchMatch)window.CloudOdysseyCodingForge.launchMatch(a.category);
  else if(a.kind==="coding"&&window.CloudOdysseyCodingForge&&window.CloudOdysseyCodingForge.launchChallenge)window.CloudOdysseyCodingForge.launchChallenge(a.index,a.mode);
  else if(a.kind==="star"&&window.CloudOdysseySpeaking&&window.CloudOdysseySpeaking.launchStar)window.CloudOdysseySpeaking.launchStar(a.index);
@@ -183,6 +210,24 @@ async function verifyArtifact(work,index,el){
    CO.toast(r.verified?"Artifact verified "+r.score+"%":"Artifact needs work "+r.score+"%");
  }catch(e){out.textContent="Verification failed: "+e.message;}
 }
+async function gradeProjectDefense(work,el){
+ var ta=$("#projectDefenseAnswer",el),out=$("#projectDefenseResult",el),answer=ta?ta.value.trim():"";
+ if(answer.length<80){CO.toast("Give a complete architecture defense before grading");return;}
+ var api=window.CloudOdysseyBackend;if(!api||!api.grade){if(out)out.textContent="Server grader unavailable";return;}
+ if(out)out.textContent="Server grading final defense...";
+ try{
+  var r=await api.grade(answer,defenseTerms(work),{type:"project-defense-"+work.id,blind:true});
+  var w=getWork();if(!w||w.id!==work.id)return;
+  w.defenseAnswer=answer;w.defenseScore=r.score;w.defensePassed=r.score>=85;
+  if(w.defensePassed){
+    var first=!w.completed;w.completed=true;w.completedAt=w.completedAt||Date.now();
+    if(first&&!w.xpAwarded){var base=CO.getState();base.xp=(base.xp||0)+250;CO.save();w.xpAwarded=true;}
+    document.dispatchEvent(new CustomEvent("odyssey:project-complete",{detail:{id:w.id,title:w.title,score:r.score,kind:w.kind}}));
+  }
+  saveWork(w);renderWorkOrder(false);
+  CO.toast(w.defensePassed?"Project COMPLETE • defense "+r.score+"% • +250 XP":"Defense "+r.score+"% • reach 85% to complete");
+ }catch(e){if(out)out.textContent="Defense grade failed: "+e.message;}
+}
 function renderWorkOrder(scroll){
  var work=getWork();if(!work)return;
  var target=$("#view-"+work.view);if(!target)return;
@@ -191,17 +236,26 @@ function renderWorkOrder(scroll){
  work.artifacts=work.artifacts||{};
  var done=Object.values(work.done||{}).filter(Boolean).length,total=work.accept.length;
  var verified=Object.values(work.artifacts).filter(function(x){return x&&x.verified;}).length;
- var ready=done===total&&verified===work.files.length;
+ var exerciseRequired=work.kind==="build",exercisePassed=!exerciseRequired||!!work.exercisePassed;
+ var ready=done===total&&verified===work.files.length&&exercisePassed;
  var el=D.createElement("section");el.className="pl-work-order glass";
  el.innerHTML='<div class="pl-work-head"><div><span class="micro">ACTIVE PROJECT WORK ORDER • '+esc(work.tag)+'</span><h3>'+esc(work.title)+'</h3><p>'+esc(work.objective)+'</p></div><div class="pl-progress"><b>'+done+'/'+total+'</b><span>ACCEPTANCE</span><em>'+verified+'/'+work.files.length+' files</em></div></div>'+
  '<div class="pl-work-grid"><article><b>SCENARIO</b><p>'+esc(work.scenario)+'</p></article><article><b>FILES YOU MUST PRODUCE</b>'+work.files.map(function(f){var a=work.artifacts[f];return '<code class="'+(a&&a.verified?"verified":"")+'">'+esc(f)+(a&&a.verified?" ✓":"")+'</code>';}).join("")+'</article></div>'+
- '<div class="pl-accept"><b>DEFINITION OF DONE</b>'+work.accept.map(function(x,i){return '<label><input type="checkbox" data-pl-check="'+i+'" '+(work.done&&work.done[i]?"checked":"")+'><span>'+esc(x)+'</span></label>';}).join("")+'</div>'+
+ '<div class="pl-accept"><b>DEFINITION OF DONE '+(work.kind==="build"?"• AUTO-VERIFIED BY CODING PASS":"")+'</b>'+work.accept.map(function(x,i){return '<label><input type="checkbox" data-pl-check="'+i+'" '+(work.done&&work.done[i]?"checked":"")+' '+(work.kind==="build"?"disabled":"")+'><span>'+esc(x)+'</span></label>';}).join("")+'</div>'+
  artifactHTML(work)+
- '<div class="pl-final-gate '+(ready?"ready":"")+'"><b>'+(ready?"READY FOR FINAL PROJECT DEFENSE":"FINAL PROJECT GATE LOCKED")+'</b><p>'+(ready?"All acceptance criteria and required artifacts are verified. Complete the destination module grader/defense to close the project.":"Complete every acceptance criterion and verify every required artifact before claiming project completion.")+'</p></div>'+
+ '<div class="pl-final-gate '+(work.completed?"complete":ready?"ready":"")+'">'+
+ (work.completed?
+   '<b>✓ PROJECT COMPLETE</b><p>Code '+(work.exerciseScore==null?"—":work.exerciseScore+"%")+' • final defense '+work.defenseScore+'% • completed project evidence is persisted.</p><button data-pl-next>Next build project →</button>':
+   ready?
+   '<b>READY FOR FINAL PROJECT DEFENSE</b><p>All acceptance criteria, coding evidence and required artifacts are verified. Defend the design, correctness, failure modes, validation and tradeoffs.</p><textarea id="projectDefenseAnswer" placeholder="WHO / WHAT / WHERE / WHEN / WHY • implementation • evidence • failure mode • rollback • business result">'+esc(work.defenseAnswer||"")+'</textarea><div class="pl-defense-actions"><button data-pl-defense>Server-grade final defense</button><span id="projectDefenseResult">'+(work.defenseScore!=null?("Last score "+work.defenseScore+"%"):"85% required")+'</span></div>':
+   '<b>FINAL PROJECT GATE LOCKED</b><p>'+(exercisePassed?"Finish acceptance criteria and verify every required artifact.":"Pass the mapped Coding Forge challenge at 90%+ first; then verify the required files.")+'</p>')+
+ '</div>'+
  '<div class="pl-work-actions"><button data-pl-action="command">← Command Center</button><button data-pl-action="destination">Jump to exercise ↓</button><button data-pl-action="switch">Choose another project</button><button data-pl-action="clear">Close work order</button></div>';
  if(head)head.insertAdjacentElement("afterend",el);else target.prepend(el);
  $$("[data-art-verify]",el).forEach(function(b){b.onclick=function(){verifyArtifact(getWork(),+b.dataset.artVerify,el);};});
  $$("[data-pl-check]",el).forEach(function(cb){cb.onchange=function(){var w=getWork();if(!w)return;w.done=w.done||{};w.done[cb.dataset.plCheck]=cb.checked;saveWork(w);renderWorkOrder(false);if(Object.values(w.done).filter(Boolean).length===w.accept.length)CO.toast("Acceptance complete • verify every required artifact next");};});
+ var defense=$("[data-pl-defense]",el);if(defense)defense.onclick=function(){gradeProjectDefense(getWork(),el);};
+ var next=$("[data-pl-next]",el);if(next)next.onclick=function(){var w=getWork(),s=streams[w.kind],n=(projectIndex(w)+1)%s.projects.length;launch(w.kind,n);};
  var c=$('[data-pl-action="command"]',el);if(c)c.onclick=function(){window.CloudOdysseyUI?window.CloudOdysseyUI.activate("command"):CO.setView("command");};
  var dst=$('[data-pl-action="destination"]',el);if(dst)dst.onclick=function(){
    var selectors={
@@ -240,11 +294,20 @@ function bindCards(){
  if(work&&activeView()===work.view)renderWorkOrder(false);
 }
 function activeView(){var v=$(".view.active");return v?v.id.replace(/^view-/,""):"command";}
+D.addEventListener("odyssey:coding-grade",function(e){
+ var d=e.detail||{},w=getWork();if(!w||w.kind!=="build"||!w.launch)return;
+ if(Number(w.launch.index)!==Number(d.index))return;
+ w.exerciseScore=Number(d.score)||0;w.exercisePassed=!!d.passed;w.exerciseDims=d.dims||{};w.exerciseUpdatedAt=Date.now();
+ if(w.exercisePassed){w.done=w.done||{};(w.accept||[]).forEach(function(x,i){w.done[i]=true;});w.acceptanceSource="coding-forge-90+";}
+ saveWork(w);
+ if(activeView()===w.view)renderWorkOrder(false);
+ CO.toast(w.exercisePassed?"Coding evidence attached to project • "+w.exerciseScore+"%":"Project coding evidence updated • "+w.exerciseScore+"%");
+});
 D.addEventListener("odyssey:viewchange",function(){setTimeout(bindCards,20);setTimeout(function(){var w=getWork();if(w&&activeView()===w.view)renderWorkOrder(false);},25);});
 var observer=new MutationObserver(function(){bindCards();var w=getWork();if(w&&activeView()===w.view&&!$(".pl-work-order",$("#view-"+w.view)))renderWorkOrder(false);});
 observer.observe($("#workspace")||D.body,{childList:true,subtree:true});
 setTimeout(bindCards,40);
 setTimeout(hydrateWork,900);
 D.addEventListener("odyssey:identity",function(){setTimeout(hydrateWork,120);});
-window.CloudOdysseyProjectLaunchpad={streams:streams,picker:picker,launch:launch,getWork:getWork,renderWorkOrder:renderWorkOrder};
+window.CloudOdysseyProjectLaunchpad={streams:streams,picker:picker,launch:launch,getWork:getWork,getHistory:getHistory,renderWorkOrder:renderWorkOrder,status:projectStatus};
 })();
