@@ -427,6 +427,6 @@ function install(){
  let b=document.createElement("button");b.className="nav-item";b.dataset.view="cloud-forge";b.innerHTML="<span>☁</span><b>Cloud + Lakehouse Forge</b><em>20</em>";b.onclick=()=>{CO.setView("cloud-forge");$("#pageTitle").textContent="Cloud + Lakehouse Project Forge";render();};nav.appendChild(b);
  let s=document.createElement("section");s.className="view";s.id="view-cloud-forge";work.appendChild(s);render();
 }
-window.CloudOdysseyCloudForge={projects:projects,getState:()=>st};
+window.CloudOdysseyCloudForge={projects:projects,getState:()=>st,render:render};
 install();
 })();
