@@ -279,7 +279,9 @@ function gradeForge(c){
   "First Pass":firstPrior?Math.round((g.correctness+ex)/2):70
  };
  var score=Math.round(Object.values(dims).reduce(function(n,x){return n+x;},0)/Object.keys(dims).length);
- st.attempts.push({title:c.title,cat:c.cat,mode:st.mode,score:score,dims:dims,ts:Date.now()});st.attempts=st.attempts.slice(-300);save();
+ var attempt={title:c.title,cat:c.cat,mode:st.mode,score:score,dims:dims,index:st.index,ts:Date.now()};
+ st.attempts.push(attempt);st.attempts=st.attempts.slice(-300);save();
+ document.dispatchEvent(new CustomEvent("odyssey:coding-grade",{detail:{title:c.title,index:st.index,mode:st.mode,score:score,dims:dims,passed:score>=90,attempt:attempt}}));
  $("#forgeFeedback").innerHTML='<div class="answer-panel"><h4>PRODUCTION CODING SCORE • '+score+'%</h4><div class="coding-dims">'+Object.keys(dims).map(function(k){return '<div class="coding-dim"><span>'+k+'</span><div class="coding-dim-track"><i style="width:'+dims[k]+'%"></i></div><b>'+Math.round(dims[k])+'%</b></div>';}).join("")+'</div><div class="pattern-proof"><div class="proof-card good"><b>Recognized</b><p>'+(g.hits.join(", ")||"No required pattern tokens yet")+'</p></div><div class="proof-card warn"><b>WHY to remember</b><p>'+esc(c.why)+' '+esc(c.caveat)+'</p></div></div></div>';
  CO.toast(score>=90?"Elite coding pass: "+score+"%":"Coding pass needs another iteration: "+score+"%");
 }
