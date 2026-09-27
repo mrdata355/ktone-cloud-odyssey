@@ -31,7 +31,8 @@ var viewMeta={
  "cloud-forge":{title:"Cloud + Lakehouse Project Forge",icon:"☁",group:"Cloud Campaigns",desc:"AWS, GCP, Azure, Databricks and Snowflake production projects"},
  backend:{title:"Backend Control Plane",icon:"⬡",group:"Platform Engineering",desc:"Real Vercel APIs, Postgres contracts, verification and observability"},
  "backend-forge":{title:"Backend Systems Forge",icon:"⚙",group:"Platform Engineering",desc:"Staff/principal distributed backend architecture and failure semantics"},
- graduation:{title:"Graduation Gate",icon:"◈",group:"Live Readiness",desc:"Mandatory simulation graduation before any live connector access"}
+ graduation:{title:"Graduation Gate",icon:"◈",group:"Live Readiness",desc:"Mandatory simulation graduation before any live connector access"},
+ sardine:{title:"Sardine Mission Forge",icon:"◉",group:"Role Campaigns",desc:"Senior fraud data/ML pipelines, Chronon, GCP, modeling, incidents and stakeholder defense"}
 };
 
 function navItems(){
