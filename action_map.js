@@ -95,7 +95,13 @@ var actions=[
 ["Backend Control Plane","Emit idempotent event","external","Writes an append-only event using Idempotency-Key.","REAL backend + Postgres; requires DATABASE_URL and migration.","warn"],
 ["Backend Systems Forge","Project selectors + 144 checkpoints","local","Tracks architecture work across 12 advanced backend systems.","Local progress evidence; does not claim deployment.","good"],
 ["Backend Systems Forge","Grade architecture defense on real server","external","Calls /api/v1/assessments/grade with project-specific required concepts.","REAL server-side grading; signing/persistence depend on configured secrets.","good"],
-["Backend Systems Forge","Run live backend smoke proof","external","Calls /api/v1/smoke and returns live server diagnostics.","REAL Vercel Function execution.","good"]
+["Backend Systems Forge","Run live backend smoke proof","external","Calls /api/v1/smoke and returns live server diagnostics.","REAL Vercel Function execution.","good"],
+["Graduation Gate","Simulation/Live access matrix","local","Calculates project-level simulation completion, blind-defense grade, and live unlock state.","No project can enter live mode before 12/12 simulation + defense ≥85.","good"],
+["Graduation Gate","Open project / Continue simulation","nav","Routes directly to the selected Cloud or Backend Forge project.","Preserves mandatory simulation-first mode on entry.","good"],
+["Cloud + Lakehouse Forge","Simulation / Live mode switch","local","Live mode stays locked until the selected project has 12/12 simulation checkpoints and ≥85 server defense.","Mandatory progression gate; no credential can bypass it.","good"],
+["Cloud + Lakehouse Forge","Run connector readiness check","external","Calls the server connector registry after simulation graduation.","Reports configured/disconnected truthfully; does not execute provider mutations.","good"],
+["Backend Systems Forge","Simulation / Live practicum switch","local","Unlocks live control-plane calls only after 12/12 simulation + ≥85 server defense.","Mandatory project graduation gate.","good"],
+["Backend Systems Forge","Live practicum API buttons","external","Calls real deployed Cloud Odyssey APIs after project graduation.","Real server requests; durable writes still depend on Postgres capability.","good"]
 ];
 
 var filter="all";
