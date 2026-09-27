@@ -6,6 +6,9 @@ var CO=window.CloudOdyssey,D=document,$=(s,r=D)=>r.querySelector(s),$$=(s,r=D)=>
 var esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 var actions=[
+["Incident War Room","Generate / Next incident","local","Loads the next unsolved incident, locks Next until the current case is solved, and restores mastered cases as complete.","Local mastery state + Elite proficiency signal; no production mutation.","good"],
+["Incident War Room","Incident choices","local","Records attempts, accuracy, streak, unique case mastery and +120 XP on first completion; wrong answers stay on the same case for retry.","Local mastery evidence; included in Elite Readiness.","good"],
+["Interaction Integrity","Automatic full-app audit","local","Scans every rendered button after view changes and DOM mutations, repairs standard routes, and reports wired/total controls in the system status strip.","Runtime guard against silent dead-button regressions.","good"],
 ["Skills Matrix","Practice / Explain / Prove","external","Launches the best matching hands-on exercise or opens a WHO/WHAT/WHERE/WHEN/WHY drill with server grading.","Hands-on routes preserve each module execution boundary; Explain/Prove uses the real assessment API.","good"],
 ["Delta Performance","Hands-On lab","external","Runs local concept checks and can submit the answer to the real server assessment grader.","Real server grading; physical Databricks execution remains simulated until a live connector/sandbox is enabled.","good"],
 ["Delta Performance","Decision Match","local","Trains symptom-to-optimization recognition across pruning, pushdown, OPTIMIZE, Z-Ordering, Liquid Clustering, VACUUM and skew.","Local rapid-recognition score.","good"],
