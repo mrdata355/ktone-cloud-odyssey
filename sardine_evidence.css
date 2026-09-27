@@ -1,0 +1,40 @@
+
+.se-status-input{opacity:.35;pointer-events:none}
+.sardine-assignment{position:relative}
+.se-task-button{margin-left:auto;align-self:center;min-width:112px;padding:8px 10px;border-radius:9px;border:1px solid rgba(90,216,255,.18);background:rgba(57,183,229,.06);color:#d7f5ff;font-size:8px;font-weight:700}
+.sardine-assignment:has(.se-task-button){display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
+.se-mission-progress{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin:12px 0;padding:12px 14px;border-radius:14px;border:1px solid rgba(93,212,255,.12);background:linear-gradient(135deg,rgba(50,181,231,.05),rgba(76,89,255,.035))}
+.se-mission-progress span{display:block;font-size:7px;letter-spacing:.12em;color:#7990a8}
+.se-mission-progress b{display:block;margin-top:3px;font-size:22px;color:#e7f7ff}
+.se-mission-progress button,.se-actions button,.se-artifact-button,.se-coverage-launch,.se-next-project{padding:8px 10px;border-radius:9px;border:1px solid rgba(89,218,255,.17);background:rgba(54,185,230,.06);color:#d7f6ff;font-size:8px;font-weight:700}
+.se-task-prompt{padding:11px;border-radius:12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.045);color:#9fb1c4;line-height:1.55}
+.se-sequence{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}
+.se-sequence span{padding:7px 8px;border-radius:8px;background:#07111d;border:1px solid rgba(255,255,255,.04);color:#8197ad;font-size:8px}
+#seTaskAnswer,#seFlowAnswer,.se-mode-practice textarea,.se-label textarea{box-sizing:border-box;width:100%;min-height:230px;padding:12px;border-radius:11px;border:1px solid rgba(106,184,228,.12);background:#06101b;color:#dcecff;font:10px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;resize:vertical}
+.se-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.se-artifact-progress{margin:10px 0;padding:10px;border-radius:11px;border:1px solid rgba(78,224,162,.1);background:rgba(52,199,138,.03)}
+.se-artifact-progress span{font-size:7px;letter-spacing:.1em;color:#748da4}
+.se-artifact-progress b{display:block;margin-top:4px;font-size:18px;color:#bff4dc}
+.se-artifact-progress>div{height:5px;margin-top:7px;border-radius:999px;background:rgba(255,255,255,.05);overflow:hidden}
+.se-artifact-progress i{display:block;height:100%;background:linear-gradient(90deg,#5adfff,#69eea8)}
+.sardine-file{gap:7px}
+.sardine-file.verified{border-color:rgba(72,227,158,.16);background:rgba(43,196,130,.025)}
+.se-artifact-button{margin-top:5px}
+.se-label{display:block;margin-top:10px;font-size:8px;letter-spacing:.1em;color:#8297ae}
+.se-label input{box-sizing:border-box;width:100%;margin-top:5px;padding:10px;border-radius:9px;border:1px solid rgba(108,183,225,.12);background:#07111d;color:#e0efff}
+.se-label input[type=file]{padding:8px}
+.se-mode-practice{margin-top:12px}
+.se-mode-practice h4{margin:5px 0}
+.se-mode-practice>p{color:#91a5ba;line-height:1.55}
+.se-coverage-launch{margin-top:7px}
+.sardine-kpi[role=button],.sardine-node[role=button]{cursor:pointer;transition:transform .18s ease,border-color .18s ease}
+.sardine-kpi[role=button]:hover,.sardine-node[role=button]:hover{transform:translateY(-1px);border-color:rgba(91,217,255,.18)}
+.se-next-project{width:100%;margin-top:10px}
+@media(max-width:720px){
+ .sardine-assignment:has(.se-task-button){grid-template-columns:1fr}
+ .se-task-button{width:100%;margin-left:0}
+ .se-mission-progress{grid-template-columns:1fr}
+ .se-mission-progress button{width:100%}
+ .se-sequence{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){.se-sequence{grid-template-columns:1fr}.se-actions button{width:100%}}
