@@ -118,3 +118,21 @@ The goal is not maximal complexity. Each pattern exists because it closes a spec
 - versioned contracts → safe evolution
 
 That tradeoff discipline is the engineering skill Cloud Odyssey should teach.
+
+## Simulation-to-live safety gate
+
+Cloud Odyssey treats provider credentials and learner readiness as separate concerns.
+
+A configured AWS, GCP, Azure, Databricks, Snowflake, or backend connection does **not** unlock live work by itself. Each project follows this sequence:
+
+1. complete all 12 simulation checkpoints
+2. complete a blind architecture defense
+3. earn a server-side defense score of at least 85
+4. mark the project as simulation-graduated
+5. unlock the live connector/practicum for that project
+6. begin live work with read-only/connectivity validation
+7. capture sanitized live evidence only after real execution
+
+Simulation remains available after graduation so failure injection, recovery rehearsal, and repeated practice never require live infrastructure.
+
+The live connector registry returns only configuration status and required environment-variable names. It never returns credential values. Provider-specific mutation adapters should default to read-only validation and require explicit approval for destructive operations.
