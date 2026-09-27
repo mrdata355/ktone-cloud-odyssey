@@ -58,10 +58,10 @@ function checkJumpTargets(){
  return Array.from(new Set(bad));
 }
 function checkRichActions(){
- var wanted=["project-stream:talk","project-stream:incident","project-stream:cloud","project-stream:explain"];
+ var wanted=["project-stream:quick","project-stream:build","project-stream:talk","project-stream:incident","project-stream:cloud","project-stream:explain"];
  return wanted.map(function(action){
    var el=$('[data-rich-action="'+action+'"]');
-   var targetMap={"project-stream:talk":"speaking","project-stream:incident":"warroom","project-stream:cloud":"cloud-forge","project-stream:explain":"stakeholder"};
+   var targetMap={"project-stream:quick":"pattern-match","project-stream:build":"coding-forge","project-stream:talk":"speaking","project-stream:incident":"warroom","project-stream:cloud":"cloud-forge","project-stream:explain":"stakeholder"};
    var target=$("#view-"+targetMap[action]);
    return {
      action:action,
