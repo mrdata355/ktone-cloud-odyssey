@@ -6,6 +6,7 @@ var $=function(s,r){return (r||D).querySelector(s);},$$=function(s,r){return Arr
 var esc=function(s){return String(s||"").replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});};
 var st=(function(){try{return JSON.parse(localStorage.getItem(KEY)||"{}");}catch(e){return {};}})();
 function save(){localStorage.setItem(KEY,JSON.stringify(st));}
+function pct(a,b){return b?Math.round(a/b*100):0;}
 
 var TOPICS=[
  ["Spark Session + Basics","PySpark","Explain driver-created SparkSession, lazy DataFrame plan and when an action triggers execution.",["sparksession","lazy","action","driver"],"spark"],
