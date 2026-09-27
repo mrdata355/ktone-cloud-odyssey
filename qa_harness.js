@@ -54,7 +54,7 @@ function checkControls(){
 }
 function checkJumpTargets(){
  var bad=[];
- $("[data-jump]").forEach(function(el){var v=el.dataset.jump;if(v&&!$("#view-"+v))bad.push(v);});
+ $$("[data-jump]").forEach(function(el){var v=el.dataset.jump;if(v&&!$("#view-"+v))bad.push(v);});
  return Array.from(new Set(bad));
 }
 function checkRichActions(){
