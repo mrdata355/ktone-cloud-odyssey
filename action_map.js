@@ -6,6 +6,8 @@ var CO=window.CloudOdyssey,D=document,$=(s,r=D)=>r.querySelector(s),$$=(s,r=D)=>
 var esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 var actions=[
+["Project Launchpad","Quick Win projects","local","Opens one of four rapid-recognition projects and preselects the matching Pattern Match category.","Local work order + Pattern Match scoring.","good"],
+["Project Launchpad","Build Something projects","local","Opens one of four hands-on coding builds and preselects the exact Coding Forge challenge/mode.","Local work order; Coding Forge uses its existing grader/runtime behavior.","good"],
 ["Project Launchpad","Talk It Through projects","local","Opens a project chooser, stores a persistent work order, then launches the exact STAR scenario.","Project context + checklist persist locally; Speaking Lab scoring remains its native grader.","good"],
 ["Project Launchpad","Break Production projects","local","Opens a concrete incident work order and launches the selected deterministic War Room scenario.","Project work order is local; incident decisions use the War Room simulator.","good"],
 ["Project Launchpad","Cloud Adventure projects","local","Opens one of six AWS/GCP/Azure/Databricks/Snowflake projects and preselects the exact Cloud Forge project.","Cloud Forge simulation and blind server defense retain their existing execution boundaries.","good"],
