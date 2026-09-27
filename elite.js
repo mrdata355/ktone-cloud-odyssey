@@ -60,7 +60,7 @@ function aggregate(){
  return {score:score,dims:dim,domains:domains,blind:blind,passes:passes,days:Object.keys(dates).length};
 }
 function otherSignals(){
- var base=CO.getState(), speak={}, ext={}, comms={}, forge={}, ladder={}, cloud={}, backendForge={}, sardine={};
+ var base=CO.getState(), speak={}, ext={}, comms={}, forge={}, ladder={}, cloud={}, backendForge={}, sardine={}, delta={}, skillPractice={};
  try{speak=JSON.parse(localStorage.getItem("cloud_odyssey_speaking_v1")||"{}");}catch(e){}
  try{ext=JSON.parse(localStorage.getItem("cloud_odyssey_extensive_v1")||"{}");}catch(e){}
  try{comms=JSON.parse(localStorage.getItem("cloud_odyssey_comms_v1")||"{}");}catch(e){}
@@ -69,6 +69,8 @@ function otherSignals(){
  try{cloud=JSON.parse(localStorage.getItem("cloud_odyssey_cloud_forge_v1")||"{}");}catch(e){}
  try{backendForge=JSON.parse(localStorage.getItem("cloud_odyssey_backend_forge_v1")||"{}");}catch(e){}
  try{sardine=JSON.parse(localStorage.getItem("cloud_odyssey_sardine_forge_v1")||"{}");}catch(e){}
+ try{delta=JSON.parse(localStorage.getItem("cloud_odyssey_delta_mastery_v1")||"{}");}catch(e){}
+ try{skillPractice=JSON.parse(localStorage.getItem("cloud_odyssey_skill_practice_v1")||"{}");}catch(e){}
  var mission=CO.doneCount()/30*100;
  var projects=Object.values(base.checks||{}).filter(Boolean).length/60*100;
  var vocab=0;if(speak.termStats){var known=Object.keys(speak.termStats).filter(function(k){var x=speak.termStats[k];return x.right>=2&&x.natural>=1;}).length;vocab=Math.min(100,known/109*100);}
@@ -115,17 +117,24 @@ function otherSignals(){
    var svocab=Object.values(sardine.vocab||{}).filter(Boolean).length/60*100;
    sardineScore=Math.min(100,Math.round(scoreCore*.9+spat*.05+svocab*.05));
  }
+ var deltaScore=0;
+ var dchecks=Object.values(delta.checks||{}).filter(Boolean).length/10*45;
+ var dgrades=Object.values(delta.grades||{}),dgrade=dgrades.length?dgrades.reduce(function(n,x){return n+(Number(x)||0);},0)/dgrades.length:0;
+ var dmatch=delta.match&&delta.match.total?Number(delta.match.right||0)/Number(delta.match.total)*100:0;
+ deltaScore=Math.min(100,Math.round(dchecks+dgrade*.30+dmatch*.15+(Number(delta.defense)||0)*.10));
+ var skillScores=[];Object.keys(skillPractice||{}).forEach(function(k){var x=skillPractice[k];if(!x||typeof x!=="object")return;if(x.explainScore!=null)skillScores.push(Number(x.explainScore)||0);if(x.proveScore!=null)skillScores.push(Number(x.proveScore)||0);});
+ var skillsScore=skillScores.length?Math.round(skillScores.reduce(function(n,x){return n+x;},0)/skillScores.length):0;
  var backend=0;
  if(backendForge.checks||backendForge.grades){
    var bc=Object.values(backendForge.checks||{}).filter(Boolean).length/144*55;
    var bg=Object.values(backendForge.grades||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/12*.45;
    backend=Math.min(100,Math.round(bc+bg));
  }
- return {missions:Math.round(mission),projects:Math.round(projects),vocab:Math.round(vocab),star:Math.round(star),deep:Math.round(deep),stakeholder:Math.round(stakeholder),coding:Math.round(coding),codingFirst:codingFirst,ladder:Math.round(ladderScore),aws:aws,gcp:gcp,azure:azure,databricks:databricks,snowflake:snowflake,backend:backend,sardine:sardineScore};
+ return {missions:Math.round(mission),projects:Math.round(projects),vocab:Math.round(vocab),star:Math.round(star),deep:Math.round(deep),stakeholder:Math.round(stakeholder),coding:Math.round(coding),codingFirst:codingFirst,ladder:Math.round(ladderScore),aws:aws,gcp:gcp,azure:azure,databricks:databricks,snowflake:snowflake,backend:backend,sardine:sardineScore,delta:deltaScore,skills:skillsScore};
 }
 function readiness(){
  var ag=aggregate(),o=otherSignals();
- var internal=Math.round(ag.score*.13+o.coding*.13+o.ladder*.08+o.aws*.03+o.gcp*.03+o.azure*.03+o.databricks*.03+o.snowflake*.03+o.missions*.07+o.projects*.04+o.vocab*.055+o.star*.055+o.deep*.06+o.stakeholder*.03+o.backend*.08+o.sardine*.12);
+ var internal=Math.round(ag.score*.10+o.coding*.10+o.ladder*.07+o.aws*.03+o.gcp*.03+o.azure*.03+o.databricks*.03+o.snowflake*.03+o.missions*.06+o.projects*.04+o.vocab*.05+o.star*.05+o.deep*.055+o.stakeholder*.03+o.backend*.075+o.sardine*.10+o.delta*.07+o.skills*.05);
  return {score:internal,ag:ag,o:o};
 }
 function gates(r){
@@ -145,6 +154,8 @@ function gates(r){
   ["GCP project forge",r.o.gcp>=85,r.o.gcp+"%","GCP campaign readiness ≥85 with real evidence slots"],
   ["Azure project forge",r.o.azure>=85,r.o.azure+"%","Azure campaign readiness ≥85 with real evidence slots"],
   ["Databricks project forge",r.o.databricks>=85,r.o.databricks+"%","Databricks campaign readiness ≥85 with real evidence slots"],
+  ["Delta performance mastery",r.o.delta>=85,r.o.delta+"%","Pipeline optimization labs + decision match + blind defense ≥85"],
+  ["Skills Matrix proficiency",r.o.skills>=85,r.o.skills+"%","Average Explain/Prove evidence across practiced skills ≥85"],
   ["Snowflake project forge",r.o.snowflake>=85,r.o.snowflake+"%","Snowflake campaign readiness ≥85 with real evidence slots"],
   ["Backend systems forge",r.o.backend>=85,r.o.backend+"%","Distributed backend architecture readiness ≥85"],
   ["Sardine role forge",r.o.sardine>=85,r.o.sardine+"%","Role-specific fraud data/ML readiness ≥85"],
@@ -167,6 +178,8 @@ function nextPlan(r){
  if(sig.gcp<85)arr.push(["GCP Forge","Advance one GCP project stage and log actual sandbox evidence when available."]);
  if(sig.azure<85)arr.push(["Azure Forge","Advance one Azure project stage and explain the identity, recovery and cost boundary."]);
  if(sig.databricks<85)arr.push(["Databricks Forge","Advance one Databricks project stage; emphasize Lakeflow, Unity Catalog, Delta and deployment evidence."]);
+ if(sig.delta<85)arr.push(["Delta Performance","Run the weakest physical-optimization lab: baseline → layout decision → query-profile proof → reconciliation."]);
+ if(sig.skills<85)arr.push(["Skills Matrix","Practice one weak skill through Practice → Explain WHY → Prove it."]);
  if(sig.snowflake<85)arr.push(["Snowflake Forge","Advance one Snowflake project stage; prove ingestion, SQL semantics, governance and cost behavior."]);
  if(sig.backend<85)arr.push(["Backend Systems","Advance one distributed backend project and defend the design on the server grader."]);
  if(sig.sardine<85)arr.push(["Sardine Mission Forge","Advance the weakest Sardine project: artifact checklist → mock discussion → incident → blind defense."]);
