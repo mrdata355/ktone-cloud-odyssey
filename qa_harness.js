@@ -94,14 +94,15 @@ function checkModules(){
   ["AWS + GCP Forge",!!$("#view-cloud-forge")],
   ["Button & Backend Map",!!$("#view-action-map")],
   ["Backend Control Plane",!!$("#view-backend")],
-  ["Backend Systems Forge",!!$("#view-backend-forge")]
+  ["Backend Systems Forge",!!$("#view-backend-forge")],
+  ["Graduation Gate",!!$("#view-graduation")]
  ];
  return expected;
 }
 function checkAssets(){
  var required=[
   "app.js","enterprise.js","reasoning.js","communications.js","speaking.js","elite.js",
-  "coding_forge.js","adaptive_ladder.js","cloud_forge.js","ultra_ui.js","qa_harness.js","action_map.js","backend_client.js","backend_console.js","backend_forge.js"
+  "coding_forge.js","adaptive_ladder.js","cloud_forge.js","ultra_ui.js","qa_harness.js","action_map.js","backend_client.js","backend_console.js","backend_forge.js","graduation_gate.js"
  ];
  var loaded=$$("script[src]").map(function(s){return (s.getAttribute("src")||"").split("/").pop();});
  return required.map(function(x){return {asset:x,ok:loaded.indexOf(x)>=0};});
