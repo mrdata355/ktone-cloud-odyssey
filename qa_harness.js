@@ -58,10 +58,11 @@ function checkJumpTargets(){
  return Array.from(new Set(bad));
 }
 function checkRichActions(){
- var wanted=["view:speaking","view:warroom","view:cloud-forge","view:stakeholder"];
+ var wanted=["project-stream:talk","project-stream:incident","project-stream:cloud","project-stream:explain"];
  return wanted.map(function(action){
    var el=$('[data-rich-action="'+action+'"]');
-   var target=action.indexOf("view:")===0?$("#view-"+action.slice(5)):null;
+   var targetMap={"project-stream:talk":"speaking","project-stream:incident":"warroom","project-stream:cloud":"cloud-forge","project-stream:explain":"stakeholder"};
+   var target=$("#view-"+targetMap[action]);
    return {
      action:action,
      present:!!el,
@@ -110,14 +111,15 @@ function checkModules(){
   ["Backend Control Plane",!!$("#view-backend")],
   ["Backend Systems Forge",!!$("#view-backend-forge")],
   ["Graduation Gate",!!$("#view-graduation")],
-  ["Sardine Mission Forge",!!$("#view-sardine")]
+  ["Sardine Mission Forge",!!$("#view-sardine")],
+  ["Project Launchpad",!!window.CloudOdysseyProjectLaunchpad]
  ];
  return expected;
 }
 function checkAssets(){
  var required=[
   "app.js","enterprise.js","reasoning.js","communications.js","speaking.js","elite.js",
-  "coding_forge.js","adaptive_ladder.js","cloud_forge.js","ultra_ui.js","qa_harness.js","action_map.js","backend_client.js","backend_console.js","backend_forge.js","graduation_gate.js","sardine_data.js","sardine_forge.js"
+  "coding_forge.js","adaptive_ladder.js","cloud_forge.js","ultra_ui.js","qa_harness.js","action_map.js","backend_client.js","backend_console.js","backend_forge.js","graduation_gate.js","sardine_data.js","sardine_forge.js","project_launchpad.js"
  ];
  var loaded=$$("script[src]").map(function(s){return (s.getAttribute("src")||"").split("/").pop();});
  return required.map(function(x){return {asset:x,ok:loaded.indexOf(x)>=0};});
