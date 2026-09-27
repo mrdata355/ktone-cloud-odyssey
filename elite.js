@@ -72,6 +72,7 @@ function otherSignals(){
  try{delta=JSON.parse(localStorage.getItem("cloud_odyssey_delta_mastery_v1")||"{}");}catch(e){}
  try{skillPractice=JSON.parse(localStorage.getItem("cloud_odyssey_skill_practice_v1")||"{}");}catch(e){}
  var mission=CO.doneCount()/30*100;
+ var incidents=Math.min(100,Object.values(base.incidentProgress||{}).filter(function(x){return x&&x.solved;}).length/4*100);
  var projects=Object.values(base.checks||{}).filter(Boolean).length/60*100;
  var vocab=0;if(speak.termStats){var known=Object.keys(speak.termStats).filter(function(k){var x=speak.termStats[k];return x.right>=2&&x.natural>=1;}).length;vocab=Math.min(100,known/109*100);}
  var star=0;if(speak.starScores){var vals=Object.values(speak.starScores);star=vals.length?vals.reduce(function(n,x){return n+(x.overall||0);},0)/vals.length:0;}
@@ -130,11 +131,11 @@ function otherSignals(){
    var bg=Object.values(backendForge.grades||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/12*.45;
    backend=Math.min(100,Math.round(bc+bg));
  }
- return {missions:Math.round(mission),projects:Math.round(projects),vocab:Math.round(vocab),star:Math.round(star),deep:Math.round(deep),stakeholder:Math.round(stakeholder),coding:Math.round(coding),codingFirst:codingFirst,ladder:Math.round(ladderScore),aws:aws,gcp:gcp,azure:azure,databricks:databricks,snowflake:snowflake,backend:backend,sardine:sardineScore,delta:deltaScore,skills:skillsScore};
+ return {missions:Math.round(mission),incidents:Math.round(incidents),projects:Math.round(projects),vocab:Math.round(vocab),star:Math.round(star),deep:Math.round(deep),stakeholder:Math.round(stakeholder),coding:Math.round(coding),codingFirst:codingFirst,ladder:Math.round(ladderScore),aws:aws,gcp:gcp,azure:azure,databricks:databricks,snowflake:snowflake,backend:backend,sardine:sardineScore,delta:deltaScore,skills:skillsScore};
 }
 function readiness(){
  var ag=aggregate(),o=otherSignals();
- var internal=Math.round(ag.score*.10+o.coding*.10+o.ladder*.07+o.aws*.03+o.gcp*.03+o.azure*.03+o.databricks*.03+o.snowflake*.03+o.missions*.06+o.projects*.04+o.vocab*.05+o.star*.05+o.deep*.055+o.stakeholder*.03+o.backend*.075+o.sardine*.10+o.delta*.07+o.skills*.05);
+ var internal=Math.round(ag.score*.095+o.coding*.095+o.ladder*.065+o.aws*.03+o.gcp*.03+o.azure*.03+o.databricks*.03+o.snowflake*.03+o.missions*.055+o.incidents*.05+o.projects*.04+o.vocab*.05+o.star*.05+o.deep*.05+o.stakeholder*.03+o.backend*.07+o.sardine*.10+o.delta*.07+o.skills*.05);
  return {score:internal,ag:ag,o:o};
 }
 function gates(r){
@@ -142,6 +143,7 @@ function gates(r){
  var domainVals=Object.values(r.ag.domains||{}),minDomain=domainVals.length?Math.min.apply(null,domainVals):0;
  return [
   ["Core lab mastery",r.o.missions>=90,r.o.missions+"%","≥90% of primary missions mastered"],
+  ["Incident War Room",r.o.incidents>=100,r.o.incidents+"%","Master all core production incident cases"],
   ["Production artifacts",r.o.projects>=90,r.o.projects+"%","≥90% of project evidence complete"],
   ["Vocabulary fluency",r.o.vocab>=90,r.o.vocab+"%","Recognition + natural use, not definition only"],
   ["STAR delivery",r.o.star>=85,r.o.star+"%","Average production STAR score ≥85"],
@@ -169,6 +171,7 @@ function gates(r){
 function nextPlan(r){
  var arr=[];
  var sig=r.o;
+ if(sig.incidents<100)arr.push(["Incident War Room","Master the next unsolved incident and explain the evidence → containment → recovery → reconciliation sequence."]);
  if(sig.vocab<90)arr.push(["Vocabulary","Run Natural Use + Contrast on weak terms until 90% fluency."]);
  if(sig.star<85)arr.push(["STAR","Do one STAR scenario without model reveal; keep Action first-person and Result measured."]);
  if(sig.deep<90)arr.push(["Deep recovery","Complete the next 8-task enterprise stage and explain WHY for every item."]);
