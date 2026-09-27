@@ -1,7 +1,7 @@
 (function(){
 "use strict";
 if(!window.CloudOdyssey){console.error("Project Launchpad requires CloudOdyssey");return;}
-var CO=window.CloudOdyssey,D=document,KEY="cloud_odyssey_active_work_v1";
+var CO=window.CloudOdyssey,D=document,KEY="cloud_odyssey_active_work_v1",syncTimer=null;
 var $=function(s,r){return (r||D).querySelector(s);};
 var $$=function(s,r){return Array.prototype.slice.call((r||D).querySelectorAll(s));};
 var esc=function(s){return String(s||"").replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});};
@@ -65,7 +65,39 @@ var streams={
 };
 
 function getWork(){try{return JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){return null;}}
-function saveWork(w){localStorage.setItem(KEY,JSON.stringify(w));}
+function workReady(w){
+  if(!w)return false;
+  var accepts=Array.isArray(w.accept)?w.accept.length:0,done=Object.values(w.done||{}).filter(Boolean).length;
+  var files=Array.isArray(w.files)?w.files.length:0,verified=Object.values(w.artifacts||{}).filter(function(x){return x&&x.verified;}).length;
+  return done===accepts&&verified===files;
+}
+function syncWork(w){
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(function(){
+    var api=window.CloudOdysseyBackend;if(!api||!api.saveWorkOrder)return;
+    var copy=JSON.parse(JSON.stringify(w||{}));copy.status=workReady(copy)?"ready":"active";
+    api.health().then(function(h){
+      if(h&&h.capabilities&&h.capabilities.durable_work_orders)return api.saveWorkOrder(copy);
+    }).then(function(r){
+      if(r&&r.work_order){document.dispatchEvent(new CustomEvent("odyssey:work-synced",{detail:r}));}
+    }).catch(function(){});
+  },450);
+}
+function saveWork(w){w.updatedAt=Date.now();localStorage.setItem(KEY,JSON.stringify(w));syncWork(w);}
+async function hydrateWork(){
+  var api=window.CloudOdysseyBackend;if(!api||!api.loadWorkOrders)return;
+  try{
+    var h=await api.health();if(!(h&&h.capabilities&&h.capabilities.durable_work_orders))return;
+    var r=await api.loadWorkOrders(),rows=r.work_orders||[];if(!rows.length)return;
+    var remote=rows[0]&&rows[0].payload;if(!remote)return;
+    var local=getWork(),remoteTs=Number(remote.updatedAt||0),localTs=Number(local&&local.updatedAt||0);
+    if(!local||remoteTs>localTs){
+      localStorage.setItem(KEY,JSON.stringify(remote));
+      if(activeView()===remote.view)renderWorkOrder(false);
+      CO.toast("Restored latest project work order from server");
+    }
+  }catch(e){}
+}
 function closeModal(){var m=$("#modal");if(m)m.classList.add("hidden");}
 function picker(kind){
  var s=streams[kind];if(!s)return;
@@ -212,5 +244,7 @@ D.addEventListener("odyssey:viewchange",function(){setTimeout(bindCards,20);setT
 var observer=new MutationObserver(function(){bindCards();var w=getWork();if(w&&activeView()===w.view&&!$(".pl-work-order",$("#view-"+w.view)))renderWorkOrder(false);});
 observer.observe($("#workspace")||D.body,{childList:true,subtree:true});
 setTimeout(bindCards,40);
+setTimeout(hydrateWork,900);
+D.addEventListener("odyssey:identity",function(){setTimeout(hydrateWork,120);});
 window.CloudOdysseyProjectLaunchpad={streams:streams,picker:picker,launch:launch,getWork:getWork,renderWorkOrder:renderWorkOrder};
 })();
