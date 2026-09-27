@@ -28,7 +28,7 @@ module.exports=api(async(req,res,ctx)=>{
       (process.env.SNOWFLAKE_PRIVATE_KEY || process.env.SNOWFLAKE_OAUTH_TOKEN),
       process.env.SNOWFLAKE_OAUTH_TOKEN?"oauth":"key pair",
       ["SNOWFLAKE_ACCOUNT","SNOWFLAKE_USER","SNOWFLAKE_PRIVATE_KEY or SNOWFLAKE_OAUTH_TOKEN"]),
-    control_plane:provider("control_plane",true,"same-origin Vercel Function",[])
+    control_plane:Object.assign(provider("control_plane",true,"same-origin Vercel Function",[]),{validated:true,mode:"validated"})
   };
   return {body:{
     ok:true,
