@@ -80,7 +80,7 @@ function sidebar(){
  var total=projects.reduce(function(n,x){return n+completed(x);},0);
  var grad=projects.filter(graduated).length;
  return '<aside class="sardine-side glass"><div class="sardine-head"><span class="micro">SARDINE ROLE CAMPAIGN</span><h3>Senior Data / ML Engineer</h3><p>Event arrival → feature → model → decision → feedback → governance → recovery.</p></div>'+
- '<div class="sardine-role-kpis"><div class="sardine-kpi"><span>ROLE READINESS</span><b>'+roleScore()+'%</b></div><div class="sardine-kpi"><span>ASSIGNMENTS</span><b>'+total+'/322</b></div><div class="sardine-kpi"><span>GRADUATED</span><b>'+grad+'/23</b></div><div class="sardine-kpi"><span>BLIND GATE</span><b>≥85</b></div></div>'+
+ '<div class="sardine-role-kpis"><div class="sardine-kpi"><span>ROLE READINESS</span><b>'+roleScore()+'%</b></div><div class="sardine-kpi"><span>ASSIGNMENTS</span><b>'+total+'/350</b></div><div class="sardine-kpi"><span>GRADUATED</span><b>'+grad+'/25</b></div><div class="sardine-kpi"><span>BLIND GATE</span><b>≥85</b></div></div>'+
  '<div class="sardine-projects">'+projects.map(function(x,i){return '<button class="sardine-project '+(i===st.project?"active ":"")+(graduated(x)?"complete":"")+'" data-sproject="'+i+'"><span class="ico">'+x.icon+'</span><div><b>'+esc(x.title)+'</b><span>'+esc(x.stack.slice(0,3).join(" • "))+'</span></div><em>'+(graduated(x)?"GRAD":completed(x)+"/14")+'</em></button>';}).join("")+'</div></aside>';
 }
 function hero(pr,label){
@@ -165,7 +165,7 @@ function assignmentView(pr){
  var rows=[];
  projects.forEach(function(x,pi){stages.forEach(function(s,i){rows.push({pr:x,pi:pi,i:i,title:s[0],done:!!st.checks[checkKey(x,i)]});});});
  var shown=st.assignmentFilter==="all"?rows:rows.filter(function(x){return x.pi===st.project;});
- return hero(pr,"EXTENSIVE TASK ASSIGNMENTS")+'<div class="sardine-block"><button class="sardine-action" data-afilter="current">Current project</button> <button class="sardine-action" data-afilter="all">All 322 assignments</button><p>'+rows.filter(function(x){return x.done;}).length+'/322 complete. Every checkbox should correspond to an artifact, implementation, test, diagram, runbook or explanation you can defend.</p></div><div class="sardine-assignments">'+shown.map(function(x){return '<label class="sardine-assignment"><input type="checkbox" data-aproject="'+x.pi+'" data-astage="'+x.i+'" '+(x.done?"checked":"")+'><div><b>'+esc(x.pr.title)+' • '+String(x.i+1).padStart(2,"0")+' '+esc(x.title)+'</b><p>'+esc(detail(x.pr,x.i))+'</p></div><em>'+esc(x.pr.stack[0])+'</em></label>';}).join("")+'</div>';
+ return hero(pr,"EXTENSIVE TASK ASSIGNMENTS")+'<div class="sardine-block"><button class="sardine-action" data-afilter="current">Current project</button> <button class="sardine-action" data-afilter="all">All 350 assignments</button><p>'+rows.filter(function(x){return x.done;}).length+'/350 complete. Every checkbox should correspond to an artifact, implementation, test, diagram, runbook or explanation you can defend.</p></div><div class="sardine-assignments">'+shown.map(function(x){return '<label class="sardine-assignment"><input type="checkbox" data-aproject="'+x.pi+'" data-astage="'+x.i+'" '+(x.done?"checked":"")+'><div><b>'+esc(x.pr.title)+' • '+String(x.i+1).padStart(2,"0")+' '+esc(x.title)+'</b><p>'+esc(detail(x.pr,x.i))+'</p></div><em>'+esc(x.pr.stack[0])+'</em></label>';}).join("")+'</div>';
 }
 function projectById(id){return projects.find(function(x){return x.id===id;});}
 function coverageScore(ids){
@@ -288,7 +288,7 @@ function render(){
  var root=$("#view-sardine");
  if(!root)return;
  var pr=current();
- root.innerHTML='<div class="view-heading"><div><span class="micro">ROLE-SPECIFIC PRODUCTION CAMPAIGN</span><h2>Sardine Senior Data / ML Engineer Forge</h2><p>Fraud data + ML ownership: ingestion → feature platform → model → low-latency decision → feedback → governance → recovery → stakeholder defense.</p></div><span class="enterprise-badge">23 PROJECTS • 322 ASSIGNMENTS • 64 PATTERNS</span></div>'+modeBar()+'<div class="sardine-shell">'+sidebar()+main(pr)+proof(pr)+'</div>';
+ root.innerHTML='<div class="view-heading"><div><span class="micro">ROLE-SPECIFIC PRODUCTION CAMPAIGN</span><h2>Sardine Senior Data / ML Engineer Forge</h2><p>Fraud data + ML ownership: ingestion → feature platform → model → low-latency decision → feedback → governance → recovery → stakeholder defense.</p></div><span class="enterprise-badge">25 PROJECTS • 350 ASSIGNMENTS • 64 PATTERNS</span></div>'+modeBar()+'<div class="sardine-shell">'+sidebar()+main(pr)+proof(pr)+'</div>';
  wire(pr);
 }
 function install(){
