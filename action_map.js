@@ -92,7 +92,10 @@ var actions=[
 ["Backend Control Plane","Generate adaptive plan","external","Calls the server-side adaptive recommendation policy using local proficiency signals.","REAL server-side computation; no database required.","good"],
 ["Backend Control Plane","Grade on server + generate receipt","external","Sends the answer to the server rubric engine and returns score, dimensions, hash, and optional signed receipt.","REAL server-side computation; receipt signing requires ASSESSMENT_SIGNING_SECRET.","good"],
 ["Backend Control Plane","Sync proficiency snapshot","external","Writes a versioned proficiency snapshot.","REAL backend + Postgres; requires DATABASE_URL and migration.","warn"],
-["Backend Control Plane","Emit idempotent event","external","Writes an append-only event using Idempotency-Key.","REAL backend + Postgres; requires DATABASE_URL and migration.","warn"]
+["Backend Control Plane","Emit idempotent event","external","Writes an append-only event using Idempotency-Key.","REAL backend + Postgres; requires DATABASE_URL and migration.","warn"],
+["Backend Systems Forge","Project selectors + 144 checkpoints","local","Tracks architecture work across 12 advanced backend systems.","Local progress evidence; does not claim deployment.","good"],
+["Backend Systems Forge","Grade architecture defense on real server","external","Calls /api/v1/assessments/grade with project-specific required concepts.","REAL server-side grading; signing/persistence depend on configured secrets.","good"],
+["Backend Systems Forge","Run live backend smoke proof","external","Calls /api/v1/smoke and returns live server diagnostics.","REAL Vercel Function execution.","good"]
 ];
 
 var filter="all";
