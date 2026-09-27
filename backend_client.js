@@ -41,11 +41,13 @@ async function health(force){
 }
 function avg(xs){return xs.length?Math.round(xs.reduce(function(a,b){return a+b;},0)/xs.length):0;}
 function collectSignals(){
-  var signals={missions:0,projects:0,coding:0,transfer:0,recovery:0,vocab:0,star:0,aws:0,gcp:0,azure:0,databricks:0,snowflake:0,stakeholder:0,backend:0,sardine:0,delta:0,skills:0,incidents:0};
+  var signals={missions:0,projects:0,coding:0,transfer:0,recovery:0,vocab:0,star:0,aws:0,gcp:0,azure:0,databricks:0,snowflake:0,stakeholder:0,backend:0,sardine:0,delta:0,skills:0,incidents:0,workorders:0};
   var base=parseStore("cloud_odyssey_enterprise_v3");
   signals.missions=Math.min(100,Math.round(Object.values(base.done||{}).filter(Boolean).length/30*100));
   signals.projects=Math.min(100,Math.round(Object.values(base.checks||{}).filter(Boolean).length/60*100));
   signals.incidents=Math.min(100,Math.round(Object.values(base.incidentProgress||{}).filter(function(x){return x&&x.solved;}).length/4*100));
+  var workHistory=parseStore("cloud_odyssey_project_history_v1");
+  signals.workorders=Math.min(100,Math.round(Object.keys(workHistory).filter(function(k){return k.indexOf("build-")===0&&workHistory[k]&&workHistory[k].completed;}).length/4*100));
   var forge=parseStore("cloud_odyssey_coding_forge_v1");
   if(Array.isArray(forge.attempts)&&forge.attempts.length)signals.coding=avg(forge.attempts.slice(-25).map(function(x){return Number(x.score)||0;}));
   var ladder=parseStore("cloud_odyssey_ladder_v1");
