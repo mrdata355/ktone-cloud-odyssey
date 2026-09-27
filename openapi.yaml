@@ -1,0 +1,189 @@
+openapi: 3.1.0
+info:
+  title: Cloud Odyssey Control Plane API
+  version: 3.0.0
+  description: |
+    Versioned backend APIs for adaptive learning, verified assessment scoring,
+    append-only learning events, proficiency snapshots, and evidence provenance.
+servers:
+  - url: https://ktone-cloud-odyssey.vercel.app
+paths:
+  /api/v1/health:
+    get:
+      summary: Control-plane health
+      responses:
+        "200":
+          description: Runtime, persistence, signing, and capability state
+  /api/v1/capabilities:
+    get:
+      summary: Architecture capability contract
+      responses:
+        "200":
+          description: Available and missing capabilities
+  /api/v1/smoke:
+    get:
+      summary: Read-only server smoke diagnostic
+      responses:
+        "200":
+          description: Executes grading, recommendation, and hashing checks server-side
+  /api/v1/recommendations:
+    post:
+      summary: Generate next-best-practice plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecommendationRequest"
+      responses:
+        "200":
+          description: Ranked practice plan with policy version and WHY
+  /api/v1/assessments/grade:
+    post:
+      summary: Grade a production assessment on the server
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssessmentRequest"
+      responses:
+        "200":
+          description: Score, dimensions, answer hash, verification mode, and optional HMAC receipt
+        "422":
+          description: Invalid assessment contract
+  /api/v1/events:
+    post:
+      summary: Append an idempotent learning event
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema:
+            type: string
+            minLength: 8
+            maxLength: 200
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LearningEvent"
+      responses:
+        "201":
+          description: New event appended
+        "200":
+          description: Idempotent replay returned existing event
+        "503":
+          description: Persistence not configured or unavailable
+  /api/v1/progress:
+    get:
+      summary: Read latest proficiency snapshot
+      parameters:
+        - in: query
+          name: client_id
+          required: true
+          schema: { type: string }
+        - in: query
+          name: tenant_id
+          schema: { type: string, default: personal }
+      responses:
+        "200":
+          description: Latest snapshot or null
+        "503":
+          description: Persistence not configured
+    put:
+      summary: Upsert a versioned proficiency snapshot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProgressSnapshot"
+      responses:
+        "200":
+          description: Snapshot persisted
+        "503":
+          description: Persistence not configured
+  /api/v1/evidence:
+    post:
+      summary: Persist evidence provenance without storing raw evidence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvidenceRequest"
+      responses:
+        "201":
+          description: SHA-256 evidence provenance persisted
+        "503":
+          description: Persistence not configured
+components:
+  schemas:
+    RecommendationRequest:
+      type: object
+      properties:
+        budget_minutes:
+          type: integer
+          minimum: 10
+          maximum: 180
+          default: 45
+        signals:
+          type: object
+          additionalProperties:
+            type: number
+            minimum: 0
+            maximum: 100
+    AssessmentRequest:
+      type: object
+      required: [client_id, answer]
+      properties:
+        client_id: { type: string, minLength: 8, maxLength: 128 }
+        tenant_id: { type: string, default: personal }
+        assessment_type: { type: string, default: production }
+        rubric_version: { type: string, default: v1 }
+        answer: { type: string, minLength: 1, maxLength: 30000 }
+        rubric:
+          type: object
+          properties:
+            required:
+              type: array
+              maxItems: 60
+              items: { type: string }
+        blind: { type: boolean, default: true }
+        reveal_used: { type: boolean, default: false }
+        duration_ms: { type: integer, minimum: 0, maximum: 86400000 }
+        metadata: { type: object, additionalProperties: true }
+    LearningEvent:
+      type: object
+      required: [client_id, event_type, payload]
+      properties:
+        client_id: { type: string }
+        tenant_id: { type: string, default: personal }
+        event_type: { type: string }
+        schema_version: { type: integer, default: 1 }
+        occurred_at: { type: string, format: date-time }
+        correlation_id: { type: [string, "null"] }
+        payload: { type: object, additionalProperties: true }
+    ProgressSnapshot:
+      type: object
+      required: [client_id, version, overall_score, signals]
+      properties:
+        client_id: { type: string }
+        tenant_id: { type: string, default: personal }
+        version: { type: integer, minimum: 0 }
+        overall_score: { type: number, minimum: 0, maximum: 100 }
+        signals: { type: object, additionalProperties: true }
+        source: { type: string, default: browser }
+    EvidenceRequest:
+      type: object
+      required: [client_id, artifact_type, artifact_name, evidence_text]
+      properties:
+        client_id: { type: string }
+        tenant_id: { type: string, default: personal }
+        artifact_type: { type: string }
+        platform: { type: string, default: general }
+        artifact_name: { type: string }
+        evidence_text: { type: string, maxLength: 30000 }
+        metadata: { type: object, additionalProperties: true }
