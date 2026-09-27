@@ -118,7 +118,10 @@ function checkModules(){
   ["Account & Sync",!!window.CloudOdysseyAccountSync],
   ["Delta Performance",!!window.CloudOdysseyDeltaMastery],
   ["Skills Matrix Practice",!!window.CloudOdysseySkillPractice],
-  ["Interaction Integrity",!!window.CloudOdysseyInteractionIntegrity]
+  ["Interaction Integrity",!!window.CloudOdysseyInteractionIntegrity],
+  ["Sardine Assignments",!!window.CloudOdysseySardineAssignments],
+  ["Sardine Artifacts",!!window.CloudOdysseySardineArtifacts],
+  ["Sardine Interactions",!!window.CloudOdysseySardineInteractions]
  ];
  return expected;
 }
