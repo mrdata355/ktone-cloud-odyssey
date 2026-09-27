@@ -87,7 +87,12 @@ var actions=[
 ["Cloud + Lakehouse Forge","▶ Run command","sim","Parses command text and returns simulated CLI/Terraform output.","SIMULATION ONLY. It does NOT call AWS, GCP, Terraform Cloud, or a shell.","bad"],
 ["Cloud + Lakehouse Forge","Save evidence note","local","Stores your pasted sanitized evidence note.","LocalStorage only; no server upload.","warn"],
 ["Action Map","Run safe tab test","local","Programmatically clicks every nav tab, verifies its target view activates, then returns to Action Map.","Browser-only QA; no destructive buttons clicked.","good"],
-["Action Map","Scan visible buttons","local","Checks currently rendered buttons for a click handler and reports suspicious dead controls.","Browser-only QA.","good"]
+["Action Map","Scan visible buttons","local","Checks currently rendered buttons for a click handler and reports suspicious dead controls.","Browser-only QA.","good"],
+["Backend Control Plane","Refresh live backend","external","Calls GET /api/v1/health on the deployed Vercel Function.","REAL server-side request; reports Node runtime, commit, DB/signing state.","good"],
+["Backend Control Plane","Generate adaptive plan","external","Calls the server-side adaptive recommendation policy using local proficiency signals.","REAL server-side computation; no database required.","good"],
+["Backend Control Plane","Grade on server + generate receipt","external","Sends the answer to the server rubric engine and returns score, dimensions, hash, and optional signed receipt.","REAL server-side computation; receipt signing requires ASSESSMENT_SIGNING_SECRET.","good"],
+["Backend Control Plane","Sync proficiency snapshot","external","Writes a versioned proficiency snapshot.","REAL backend + Postgres; requires DATABASE_URL and migration.","warn"],
+["Backend Control Plane","Emit idempotent event","external","Writes an append-only event using Idempotency-Key.","REAL backend + Postgres; requires DATABASE_URL and migration.","warn"]
 ];
 
 var filter="all";
