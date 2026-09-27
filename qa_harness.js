@@ -117,7 +117,8 @@ function checkModules(){
   ["Product Roadmap",!!window.CloudOdysseyProductRoadmap],
   ["Account & Sync",!!window.CloudOdysseyAccountSync],
   ["Delta Performance",!!window.CloudOdysseyDeltaMastery],
-  ["Skills Matrix Practice",!!window.CloudOdysseySkillPractice]
+  ["Skills Matrix Practice",!!window.CloudOdysseySkillPractice],
+  ["Interaction Integrity",!!window.CloudOdysseyInteractionIntegrity]
  ];
  return expected;
 }
