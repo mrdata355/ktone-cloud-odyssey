@@ -485,8 +485,8 @@ function renderRelics(){
   $('#relicVault').innerHTML=worlds.map(function(w,wi){const unlocked=worldDone(wi)===3;return '<article class="relic-card glass '+(unlocked?'':'locked')+'"><div class="relic-icon">'+(unlocked?w.icon:'🔒')+'</div><span class="micro">'+(unlocked?'UNLOCKED':'LOCKED')+'</span><h3>'+w.relic+'</h3><p>'+(unlocked?'Earned by mastering all three '+w.name+' missions.':'Restore '+w.name+' to unlock this production relic.')+'</p></article>';}).join('');
 }
 
-function generateIncident(){
-  activeIncident=random(incidentCases);state.lastIncident=activeIncident.title;save();incidentStarted=Date.now();
+function generateIncident(index){
+  activeIncident=(typeof index==='number'&&incidentCases.length)?incidentCases[((index%incidentCases.length)+incidentCases.length)%incidentCases.length]:random(incidentCases);state.lastIncident=activeIncident.title;save();incidentStarted=Date.now();
   $('#incidentSeverity').textContent=activeIncident.sev;$('#incidentTitle').textContent=activeIncident.title;$('#incidentSummary').textContent=activeIncident.summary;
   $('#blastMetrics').innerHTML=activeIncident.metrics.map(function(m){return '<div class="blast"><span>'+m[0]+'</span><b>'+m[1]+'</b></div>';}).join('');
   $('#incidentSignals').innerHTML=activeIncident.signals.map(function(s){return '<div class="signal"><span>'+s[0]+'</span><b>'+s[1]+'</b></div>';}).join('');
@@ -543,6 +543,8 @@ window.CloudOdyssey={
   save:save,
   toast:toast,
   openMission:openMission,
+  launchIncident:function(index){setView('warroom');generateIncident(Number(index)||0);},
+  incidents:incidentCases,
   setView:setView,
   doneCount:doneCount,
   worldDone:worldDone,
