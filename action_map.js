@@ -6,6 +6,9 @@ var CO=window.CloudOdyssey,D=document,$=(s,r=D)=>r.querySelector(s),$$=(s,r=D)=>
 var esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 var actions=[
+["Account & Sync","Refresh status","external","Calls /health, /me and durable work-order status to distinguish API, Postgres and authentication readiness.","Real backend read; no mutation.","good"],
+["Account & Sync","Sync proficiency now","external","Writes the current proficiency snapshot when Postgres is configured.","Real backend persistence; returns an explicit non-persisted message when DATABASE_URL is absent.","good"],
+["Account & Sync","Export local recovery snapshot","local","Exports Cloud Odyssey localStorage state as a recovery JSON file.","Local browser operation; useful before auth/database migration.","good"],
 ["Project Launchpad","Quick Win projects","local","Opens one of four rapid-recognition projects and preselects the matching Pattern Match category.","Local work order + Pattern Match scoring.","good"],
 ["Project Launchpad","Build Something projects","local","Opens one of four hands-on coding builds and preselects the exact Coding Forge challenge/mode.","Local work order; Coding Forge uses its existing grader/runtime behavior.","good"],
 ["Project Launchpad","Talk It Through projects","local","Opens a project chooser, stores a persistent work order, then launches the exact STAR scenario.","Project context + checklist persist locally; Speaking Lab scoring remains its native grader.","good"],
