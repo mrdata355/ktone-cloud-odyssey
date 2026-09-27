@@ -1,7 +1,10 @@
 const crypto=require("node:crypto");
 
 const jwksCache={url:null,keys:[],at:0};
-function configured(){return Boolean(process.env.AUTH_JWKS_URL);}
+function authBase(){return String(process.env.NEON_AUTH_BASE_URL||"").replace(/\/$/,"");}
+function authOrigin(){try{return authBase()?new URL(authBase()).origin:"";}catch(e){return "";}}
+function jwksUrl(){return process.env.NEON_AUTH_JWKS_URL||process.env.AUTH_JWKS_URL||(authBase()?authBase()+"/.well-known/jwks.json":"");}
+function configured(){return Boolean(jwksUrl());}
 function required(){return String(process.env.AUTH_REQUIRED||"false").toLowerCase()==="true";}
 function b64urlJson(part){
   try{return JSON.parse(Buffer.from(part.replace(/-/g,"+").replace(/_/g,"/"),"base64").toString("utf8"));}
@@ -13,7 +16,7 @@ function bearer(req){
   return m?m[1].trim():null;
 }
 async function jwks(){
-  const url=process.env.AUTH_JWKS_URL;
+  const url=jwksUrl();
   if(!url) return [];
   if(jwksCache.url===url&&Date.now()-jwksCache.at<300000&&jwksCache.keys.length)return jwksCache.keys;
   const r=await fetch(url,{headers:{"accept":"application/json"}});
@@ -55,8 +58,9 @@ async function verifyWith(parts,header,payload,jwk){
   const now=Math.floor(Date.now()/1000),skew=60;
   if(payload.exp&&Number(payload.exp)<now-skew){const e=new Error("JWT expired");e.statusCode=401;throw e;}
   if(payload.nbf&&Number(payload.nbf)>now+skew){const e=new Error("JWT not active yet");e.statusCode=401;throw e;}
-  if(process.env.AUTH_ISSUER&&payload.iss!==process.env.AUTH_ISSUER){const e=new Error("JWT issuer mismatch");e.statusCode=401;throw e;}
-  if(!audOk(payload.aud,process.env.AUTH_AUDIENCE)){const e=new Error("JWT audience mismatch");e.statusCode=401;throw e;}
+  const expectedIssuer=process.env.AUTH_ISSUER||authOrigin(),expectedAudience=process.env.AUTH_AUDIENCE||authOrigin();
+  if(expectedIssuer&&payload.iss!==expectedIssuer){const e=new Error("JWT issuer mismatch");e.statusCode=401;throw e;}
+  if(!audOk(payload.aud,expectedAudience)){const e=new Error("JWT audience mismatch");e.statusCode=401;throw e;}
   if(!payload.sub){const e=new Error("JWT subject is required");e.statusCode=401;throw e;}
   return payload;
 }
@@ -101,4 +105,4 @@ async function ensure(db,actor){
     values ($1,$2,$3) on conflict (tenant_id,user_id) do update set role=excluded.role`,
     [actor.tenant_id,actor.user_id,actor.role]);
 }
-module.exports={configured,required,resolve,ensure,verify};
+module.exports={configured,required,resolve,ensure,verify,authBase,authOrigin,jwksUrl};
