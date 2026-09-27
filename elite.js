@@ -60,13 +60,14 @@ function aggregate(){
  return {score:score,dims:dim,domains:domains,blind:blind,passes:passes,days:Object.keys(dates).length};
 }
 function otherSignals(){
- var base=CO.getState(), speak={}, ext={}, comms={}, forge={}, ladder={}, cloud={};
+ var base=CO.getState(), speak={}, ext={}, comms={}, forge={}, ladder={}, cloud={}, backendForge={};
  try{speak=JSON.parse(localStorage.getItem("cloud_odyssey_speaking_v1")||"{}");}catch(e){}
  try{ext=JSON.parse(localStorage.getItem("cloud_odyssey_extensive_v1")||"{}");}catch(e){}
  try{comms=JSON.parse(localStorage.getItem("cloud_odyssey_comms_v1")||"{}");}catch(e){}
  try{forge=JSON.parse(localStorage.getItem("cloud_odyssey_coding_forge_v1")||"{}");}catch(e){}
  try{ladder=JSON.parse(localStorage.getItem("cloud_odyssey_ladder_v1")||"{}");}catch(e){}
  try{cloud=JSON.parse(localStorage.getItem("cloud_odyssey_cloud_forge_v1")||"{}");}catch(e){}
+ try{backendForge=JSON.parse(localStorage.getItem("cloud_odyssey_backend_forge_v1")||"{}");}catch(e){}
  var mission=CO.doneCount()/30*100;
  var projects=Object.values(base.checks||{}).filter(Boolean).length/60*100;
  var vocab=0;if(speak.termStats){var known=Object.keys(speak.termStats).filter(function(k){var x=speak.termStats[k];return x.right>=2&&x.natural>=1;}).length;vocab=Math.min(100,known/109*100);}
@@ -98,11 +99,17 @@ function otherSignals(){
    databricks=platformScore("databricks",8);
    snowflake=platformScore("snowflake",8);
  }
- return {missions:Math.round(mission),projects:Math.round(projects),vocab:Math.round(vocab),star:Math.round(star),deep:Math.round(deep),stakeholder:Math.round(stakeholder),coding:Math.round(coding),codingFirst:codingFirst,ladder:Math.round(ladderScore),aws:aws,gcp:gcp,azure:azure,databricks:databricks,snowflake:snowflake};
+ var backend=0;
+ if(backendForge.checks||backendForge.grades){
+   var bc=Object.values(backendForge.checks||{}).filter(Boolean).length/144*55;
+   var bg=Object.values(backendForge.grades||{}).reduce(function(n,x){return n+(Number(x)||0);},0)/12*.45;
+   backend=Math.min(100,Math.round(bc+bg));
+ }
+ return {missions:Math.round(mission),projects:Math.round(projects),vocab:Math.round(vocab),star:Math.round(star),deep:Math.round(deep),stakeholder:Math.round(stakeholder),coding:Math.round(coding),codingFirst:codingFirst,ladder:Math.round(ladderScore),aws:aws,gcp:gcp,azure:azure,databricks:databricks,snowflake:snowflake,backend:backend};
 }
 function readiness(){
  var ag=aggregate(),o=otherSignals();
- var internal=Math.round(ag.score*.16+o.coding*.16+o.ladder*.10+o.aws*.04+o.gcp*.04+o.azure*.04+o.databricks*.04+o.snowflake*.04+o.missions*.08+o.projects*.05+o.vocab*.07+o.star*.07+o.deep*.07+o.stakeholder*.04);
+ var internal=Math.round(ag.score*.14+o.coding*.14+o.ladder*.09+o.aws*.035+o.gcp*.035+o.azure*.035+o.databricks*.035+o.snowflake*.035+o.missions*.075+o.projects*.045+o.vocab*.06+o.star*.06+o.deep*.065+o.stakeholder*.035+o.backend*.115);
  return {score:internal,ag:ag,o:o};
 }
 function gates(r){
@@ -123,6 +130,7 @@ function gates(r){
   ["Azure project forge",r.o.azure>=85,r.o.azure+"%","Azure campaign readiness ≥85 with real evidence slots"],
   ["Databricks project forge",r.o.databricks>=85,r.o.databricks+"%","Databricks campaign readiness ≥85 with real evidence slots"],
   ["Snowflake project forge",r.o.snowflake>=85,r.o.snowflake+"%","Snowflake campaign readiness ≥85 with real evidence slots"],
+  ["Backend systems forge",r.o.backend>=85,r.o.backend+"%","Distributed backend architecture readiness ≥85"],
   ["Blind scenario passes",r.ag.blind>=6,r.ag.blind+"/6","Six ≥85 attempts without reveal"],
   ["Repeated elite passes",r.ag.passes>=5,r.ag.passes+"/5","Five recent ≥90 scenario passes"],
   ["No weak skill dimension",minDim>=85,minDim+"%","Every proof dimension ≥85"],
@@ -143,6 +151,7 @@ function nextPlan(r){
  if(sig.azure<85)arr.push(["Azure Forge","Advance one Azure project stage and explain the identity, recovery and cost boundary."]);
  if(sig.databricks<85)arr.push(["Databricks Forge","Advance one Databricks project stage; emphasize Lakeflow, Unity Catalog, Delta and deployment evidence."]);
  if(sig.snowflake<85)arr.push(["Snowflake Forge","Advance one Snowflake project stage; prove ingestion, SQL semantics, governance and cost behavior."]);
+ if(sig.backend<85)arr.push(["Backend Systems","Advance one distributed backend project and defend the design on the server grader."]);
  if(r.ag.blind<6)arr.push(["Blind transfer","Run a coach scenario without revealing solution; target ≥85."]);
  var weak=dims.slice().sort(function(a,b){return (r.ag.dims[a]||0)-(r.ag.dims[b]||0);})[0];
  if((r.ag.dims[weak]||0)<85)arr.push([weak,"Lowest proof dimension. Pick a scenario and answer specifically to improve "+weak.toLowerCase()+"."]);
