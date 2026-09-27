@@ -74,7 +74,8 @@ function picker(kind){
  var modal=$("#modal"),content=$("#modalContent");if(!modal||!content)return;
  content.innerHTML='<span class="micro">'+esc(s.kicker)+'</span><h2>'+esc(s.label)+' Projects</h2>'+body;
  modal.classList.remove("hidden");
- $$("[data-pl-launch]",content).forEach(function(b){b.onclick=function(){var x=b.dataset.plLaunch.split(":");launch(x[0],+x[1]);};});
+ content.scrollTop=0;var pg=$(".pl-project-grid",content);if(pg)pg.scrollTop=0;
+ $("[data-pl-launch]",content).forEach(function(b){b.onclick=function(){var x=b.dataset.plLaunch.split(":");launch(x[0],+x[1]);};});
 }
 function launch(kind,index){
  var s=streams[kind],p=s&&s.projects[index];if(!p)return;
@@ -167,9 +168,21 @@ function renderWorkOrder(scroll){
  '<div class="pl-final-gate '+(ready?"ready":"")+'"><b>'+(ready?"READY FOR FINAL PROJECT DEFENSE":"FINAL PROJECT GATE LOCKED")+'</b><p>'+(ready?"All acceptance criteria and required artifacts are verified. Complete the destination module grader/defense to close the project.":"Complete every acceptance criterion and verify every required artifact before claiming project completion.")+'</p></div>'+
  '<div class="pl-work-actions"><button data-pl-action="command">← Command Center</button><button data-pl-action="destination">Jump to exercise ↓</button><button data-pl-action="switch">Choose another project</button><button data-pl-action="clear">Close work order</button></div>';
  if(head)head.insertAdjacentElement("afterend",el);else target.prepend(el);
- $$("[data-pl-check]",el).forEach(function(cb){cb.onchange=function(){var w=getWork();if(!w)return;w.done=w.done||{};w.done[cb.dataset.plCheck]=cb.checked;saveWork(w);renderWorkOrder(false);if(Object.values(w.done).filter(Boolean).length===w.accept.length)CO.toast("Project work order complete • now prove it in the module grader");};});
+ $("[data-art-verify]",el).forEach(function(b){b.onclick=function(){verifyArtifact(getWork(),+b.dataset.artVerify,el);};});
+ $("[data-pl-check]",el).forEach(function(cb){cb.onchange=function(){var w=getWork();if(!w)return;w.done=w.done||{};w.done[cb.dataset.plCheck]=cb.checked;saveWork(w);renderWorkOrder(false);if(Object.values(w.done).filter(Boolean).length===w.accept.length)CO.toast("Acceptance complete • verify every required artifact next");};});
  var c=$('[data-pl-action="command"]',el);if(c)c.onclick=function(){window.CloudOdysseyUI?window.CloudOdysseyUI.activate("command"):CO.setView("command");};
- var dst=$('[data-pl-action="destination"]',el);if(dst)dst.onclick=function(){el.scrollIntoView({behavior:"smooth",block:"end"});setTimeout(function(){window.scrollBy({top:Math.max(380,window.innerHeight*.55),behavior:"smooth"});},180);};
+ var dst=$('[data-pl-action="destination"]',el);if(dst)dst.onclick=function(){
+   var selectors={
+     "coding-forge":"#forgeCode",
+     "pattern-match":".match-board",
+     "speaking":"#speakingMain",
+     "warroom":"#incidentChoices",
+     "cloud-forge":".cloud-project-main",
+     "stakeholder":"#practiceAnswer"
+   };
+   var node=$(selectors[work.view]||"",target)||target.querySelector(".forge-main,.speaking-main,.stakeholder-main,.cloud-project-main,.war-main");
+   if(node){node.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(function(){if(node.focus)node.focus({preventScroll:true});},350);}
+ };
  var sw=$('[data-pl-action="switch"]',el);if(sw)sw.onclick=function(){picker(work.kind);};
  var cl=$('[data-pl-action="clear"]',el);if(cl)cl.onclick=function(){localStorage.removeItem(KEY);el.remove();};
  if(scroll)el.scrollIntoView({behavior:"smooth",block:"start"});
