@@ -99,6 +99,19 @@ async function gradeMission(input){
     duration_ms:Number(input.duration_ms)||0
   }});
 }
+async function verifyArtifact(input){
+  input=input||{};
+  return request("artifacts/verify",{method:"POST",body:{
+    client_id:state.client_id,
+    work_order_id:input.work_order_id,
+    expected_path:input.expected_path,
+    declared_path:input.declared_path,
+    file_name:input.file_name,
+    purpose:input.purpose,
+    naming_reason:input.naming_reason,
+    content:input.content
+  }});
+}
 async function connectorStatus(){return request("connectors/status");}
 async function recommendations(budget){return request("recommendations",{method:"POST",body:{signals:collectSignals(),budget_minutes:budget||45}});}
 async function grade(answer,required,meta){
@@ -126,7 +139,7 @@ async function syncProgress(){
 async function saveEvidence(input){
   return request("evidence",{method:"POST",body:Object.assign({client_id:state.client_id,tenant_id:"personal"},input)});
 }
-window.CloudOdysseyBackend={request:request,health:health,startMission:startMission,runMissionTests:runMissionTests,gradeMission:gradeMission,connectorStatus:connectorStatus,recommendations:recommendations,grade:grade,emit:emit,syncProgress:syncProgress,saveEvidence:saveEvidence,collectSignals:collectSignals,clientId:function(){return state.client_id;}};
+window.CloudOdysseyBackend={request:request,health:health,startMission:startMission,runMissionTests:runMissionTests,gradeMission:gradeMission,verifyArtifact:verifyArtifact,connectorStatus:connectorStatus,recommendations:recommendations,grade:grade,emit:emit,syncProgress:syncProgress,saveEvidence:saveEvidence,collectSignals:collectSignals,clientId:function(){return state.client_id;}};
 health().then(function(h){
   var sync=document.querySelector(".sidebar-footer .sync span");
   if(sync)sync.textContent=h.ok?(h.persistence&&h.persistence.ok?"Backend + Postgres online":"Backend API online • persistence pending"):"Backend unreachable • local mode";
