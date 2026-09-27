@@ -252,9 +252,18 @@
         </section>
 
         <section class="view" id="view-warroom">
-          <div class="view-heading">
+          <div class="view-heading warroom-heading">
             <div><span class="micro">BREAK / FIX SIMULATOR</span><h2>Incident War Room</h2><p>Production is failing. Preserve evidence, bound the blast radius, diagnose, recover, and explain what changed.</p></div>
-            <button class="primary-btn" id="newIncident">Generate incident</button>
+            <div class="warroom-actions">
+              <button class="secondary-btn" id="newIncident">Generate incident</button>
+              <button class="primary-btn" id="nextIncident" disabled>Next incident →</button>
+            </div>
+          </div>
+          <div class="incident-progress-shell glass">
+            <div id="incidentProgress" class="incident-progress"><b>0/4</b><span>INCIDENTS MASTERED</span><i><em style="width:0%"></em></i></div>
+            <div id="incidentStats" class="incident-stats">
+              <div><span>ACCURACY</span><b>0%</b></div><div><span>ATTEMPTS</span><b>0</b></div><div><span>CURRENT STREAK</span><b>0</b></div><div><span>BEST STREAK</span><b>0</b></div>
+            </div>
           </div>
           <div class="warroom-grid">
             <article class="glass incident-main">
