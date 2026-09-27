@@ -19,6 +19,7 @@ module.exports=api(async(req,res,ctx)=>{
       mission_sessions:true,
       mission_server_tests:true,
       authoritative_mission_grading:true,
+      artifact_verification:true,
       adaptive_recommendations:true,
       durable_progress:database.configured&&database.ok,
       durable_events:database.configured&&database.ok,
