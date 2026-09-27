@@ -10,12 +10,14 @@ module.exports=api(async()=>{
       event_model:"append-only learning events + versioned snapshots",
       verification:"server-side rubric scoring + optional HMAC receipts",
       privacy:"raw answers/evidence can remain client-side; hashes and metadata are persisted",
-      observability:"structured JSON logs + request/correlation IDs"
+      observability:"structured JSON logs + request/correlation IDs",
+      progression:"simulation 12/12 + blind server defense >=85 before live connector access"
     },
     endpoints:[
       {method:"GET",path:"/api/v1/health",class:"real backend"},
       {method:"GET",path:"/api/v1/capabilities",class:"real backend"},
       {method:"GET",path:"/api/v1/smoke",class:"real backend diagnostic"},
+      {method:"GET",path:"/api/v1/connectors/status",class:"server connector registry; no secrets returned"},
       {method:"POST",path:"/api/v1/recommendations",class:"real backend"},
       {method:"POST",path:"/api/v1/assessments/grade",class:"real backend"},
       {method:"POST",path:"/api/v1/events",class:"persistent when DATABASE_URL configured"},
