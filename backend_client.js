@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-var KEY="cloud_odyssey_backend_client_v1";
+var KEY="cloud_odyssey_backend_client_v1",TOKEN_KEY="cloud_odyssey_access_token_v1";
 var state={client_id:null,health:null,health_at:0,queue:[]};
 try{Object.assign(state,JSON.parse(localStorage.getItem(KEY)||"{}"));}catch(e){}
 if(!state.client_id){
@@ -10,9 +10,12 @@ function save(){
   localStorage.setItem(KEY,JSON.stringify({client_id:state.client_id,health:state.health,health_at:state.health_at,queue:state.queue.slice(-50)}));
 }
 function parseStore(key){try{return JSON.parse(localStorage.getItem(key)||"{}");}catch(e){return {};}}
+function accessToken(){try{return sessionStorage.getItem(TOKEN_KEY)||"";}catch(e){return "";}}
+function setAccessToken(token){try{if(token)sessionStorage.setItem(TOKEN_KEY,String(token));else sessionStorage.removeItem(TOKEN_KEY);}catch(e){}state.health=null;state.health_at=0;save();}
+function clearAccessToken(){setAccessToken("");}
 async function request(path,opts){
   opts=opts||{};
-  var headers=Object.assign({"Content-Type":"application/json","X-Client-Id":state.client_id},opts.headers||{});
+  var headers=Object.assign({"Content-Type":"application/json","X-Client-Id":state.client_id},opts.headers||{});var tok=accessToken();if(tok)headers.Authorization="Bearer "+tok;
   var res=await fetch("/api/v1/"+path,{method:opts.method||"GET",headers:headers,body:opts.body===undefined?undefined:JSON.stringify(opts.body)});
   var data={};try{data=await res.json();}catch(e){data={ok:false,error:{message:"Invalid API response"}};}
   data.http_status=res.status;data.request_id=data.request_id||res.headers.get("x-request-id");
@@ -112,6 +115,18 @@ async function verifyArtifact(input){
     content:input.content
   }});
 }
+async function me(){return request("me");}
+async function saveWorkOrder(work){
+  work=work||{};
+  return request("work-orders",{method:"PUT",body:{
+    work_order_id:work.id,
+    kind:work.kind||"project",
+    title:work.title||"Untitled work order",
+    status:work.status||"active",
+    payload:work
+  }});
+}
+async function loadWorkOrders(){return request("work-orders");}
 async function connectorStatus(){return request("connectors/status");}
 async function recommendations(budget){return request("recommendations",{method:"POST",body:{signals:collectSignals(),budget_minutes:budget||45}});}
 async function grade(answer,required,meta){
@@ -139,7 +154,8 @@ async function syncProgress(){
 async function saveEvidence(input){
   return request("evidence",{method:"POST",body:Object.assign({client_id:state.client_id,tenant_id:"personal"},input)});
 }
-window.CloudOdysseyBackend={request:request,health:health,startMission:startMission,runMissionTests:runMissionTests,gradeMission:gradeMission,verifyArtifact:verifyArtifact,connectorStatus:connectorStatus,recommendations:recommendations,grade:grade,emit:emit,syncProgress:syncProgress,saveEvidence:saveEvidence,collectSignals:collectSignals,clientId:function(){return state.client_id;}};
+window.CloudOdysseyBackend={request:request,health:health,me:me,setAccessToken:setAccessToken,clearAccessToken:clearAccessToken,accessToken:accessToken,startMission:startMission,runMissionTests:runMissionTests,gradeMission:gradeMission,verifyArtifact:verifyArtifact,saveWorkOrder:saveWorkOrder,loadWorkOrders:loadWorkOrders,connectorStatus:connectorStatus,recommendations:recommendations,grade:grade,emit:emit,syncProgress:syncProgress,saveEvidence:saveEvidence,collectSignals:collectSignals,clientId:function(){return state.client_id;}};
+me().then(function(m){document.dispatchEvent(new CustomEvent("odyssey:identity",{detail:m}));}).catch(function(e){document.dispatchEvent(new CustomEvent("odyssey:identity",{detail:{ok:false,error:e.message}}));});
 health().then(function(h){
   var sync=document.querySelector(".sidebar-footer .sync span");
   if(sync)sync.textContent=h.ok?(h.persistence&&h.persistence.ok?"Backend + Postgres online":"Backend API online • persistence pending"):"Backend unreachable • local mode";
