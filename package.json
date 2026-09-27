@@ -1,6 +1,6 @@
 {
   "name": "ktone-cloud-odyssey",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "private": true,
   "engines": {
     "node": "24.x"
@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "npx vercel dev",
     "dev:static": "python3 -m http.server 4173",
-    "check": "node --check app.js && node --check enterprise.js && node --check elite.js && node --check backend_client.js && node --check backend_console.js && node --check sardine_data.js && node --check sardine_forge.js"
+    "check": "node --check app.js && node --check enterprise.js && node --check elite.js && node --check backend_client.js && node --check backend_console.js && node --check sardine_data.js && node --check sardine_forge.js && node --check api/_lib/mission_catalog.js && node --check api/v1/mission-sessions/start.js && node --check api/v1/mission-tests/run.js && node --check api/v1/missions/grade.js"
   },
   "dependencies": {
     "@neondatabase/serverless": "1.1.0"
