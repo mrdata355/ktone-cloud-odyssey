@@ -22,6 +22,7 @@ function routes(){
   ["GET","/api/v1/health","Runtime + DB + signing health","REAL"],
   ["GET","/api/v1/capabilities","Architecture/capability contract","REAL"],
   ["GET","/api/v1/smoke","Server-side scoring/recommendation diagnostic","REAL"],
+  ["GET","/api/v1/connectors/status","Provider connector registry + safety state","REAL"],
   ["POST","/api/v1/recommendations","Adaptive next-best-practice policy","REAL"],
   ["POST","/api/v1/assessments/grade","Server grading + receipt/hash","REAL"],
   ["POST","/api/v1/events","Idempotent append-only event store","DB"],
