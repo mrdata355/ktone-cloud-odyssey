@@ -1,0 +1,2 @@
+const p=require("../../_lib/neon_auth_proxy");
+module.exports=async(req,res)=>{try{if(req.method!=="GET"){res.statusCode=405;return res.end();}const r=await p.upstream(req,"/auth/get-session","GET");if(r.setCookies&&r.setCookies.length)res.setHeader("Set-Cookie",r.setCookies);res.statusCode=r.status;res.setHeader("Content-Type","application/json; charset=utf-8");const data=r.data||{};data.access_token=r.jwt||null;res.end(JSON.stringify(data));}catch(e){p.fail(res,e);}};
