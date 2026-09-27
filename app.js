@@ -171,8 +171,45 @@ function renderMissions(){
 }
 
 function openMission(wi,mi){
-  state.active={w:wi,m:mi};save();
+  const w=worlds[wi],m=w&&w.missions&&w.missions[mi],id=missionId(wi,mi);
+  state.active={w:wi,m:mi,mission_id:id,server_status:'starting'};save();
   loadLab(wi,mi);setView('lab');
+
+  const api=window.CloudOdysseyBackend;
+  if(api&&api.startMission&&w&&m){
+    api.startMission({
+      mission_id:id,
+      world_id:w.id||('world-'+(wi+1)),
+      world_name:w.name,
+      mission_title:m.title,
+      mission_type:m.type,
+      skill:w.skills&&w.skills[mi],
+      stack:w.stack||[],
+      revisit:!!state.done[id],
+      source:'mission-control'
+    }).then(function(r){
+      if(state.active&&state.active.w===wi&&state.active.m===mi){
+        state.active.session_id=r.session_id;
+        state.active.request_id=r.request_id;
+        state.active.server_status='started';
+        state.active.persistence=!!(r.persistence&&r.persistence.stored);
+        save();
+      }
+      document.dispatchEvent(new CustomEvent('odyssey:mission-session',{detail:r}));
+      toast('Server mission session '+String(r.session_id||'').slice(0,8)+' started'+((r.persistence&&r.persistence.stored)?' • persisted':' • control-plane acknowledged'));
+    }).catch(function(e){
+      if(state.active&&state.active.w===wi&&state.active.m===mi){
+        state.active.server_status='error';
+        state.active.server_error=e.message;
+        save();
+      }
+      document.dispatchEvent(new CustomEvent('odyssey:mission-session-error',{detail:{mission_id:id,error:e.message}}));
+      toast('Mission opened • backend session start failed');
+    });
+  }else{
+    state.active.server_status='backend-client-unavailable';save();
+    toast('Mission opened • backend client unavailable');
+  }
 }
 
 function buildTestFile(w,m){
