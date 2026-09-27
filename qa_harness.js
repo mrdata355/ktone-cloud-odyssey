@@ -54,8 +54,22 @@ function checkControls(){
 }
 function checkJumpTargets(){
  var bad=[];
- $$("[data-jump]").forEach(function(el){var v=el.dataset.jump;if(v&&!$("#view-"+v))bad.push(v);});
+ $("[data-jump]").forEach(function(el){var v=el.dataset.jump;if(v&&!$("#view-"+v))bad.push(v);});
  return Array.from(new Set(bad));
+}
+function checkRichActions(){
+ var wanted=["view:speaking","view:warroom","view:cloud-forge","view:stakeholder"];
+ return wanted.map(function(action){
+   var el=$('[data-rich-action="'+action+'"]');
+   var target=action.indexOf("view:")===0?$("#view-"+action.slice(5)):null;
+   return {
+     action:action,
+     present:!!el,
+     wired:!!(el&&typeof el.onclick==="function"),
+     target:!!target,
+     ok:!!(el&&typeof el.onclick==="function"&&target)
+   };
+ });
 }
 function checkNavigation(){
  var CO=window.CloudOdyssey;
@@ -113,6 +127,7 @@ function run(open){
  var controls=checkControls();
  var dups=duplicateIds();
  var jumps=checkJumpTargets();
+ var richActions=checkRichActions();
  var modules=checkModules();
  var assets=checkAssets();
  var modulePass=modules.filter(function(x){return x[1];}).length;
@@ -123,6 +138,7 @@ function run(open){
    controls.unwiredVisible.length===0 &&
    dups.length===0 &&
    jumps.length===0 &&
+   richActions.every(function(x){return x.ok;}) &&
    runtimeErrors.length===0 &&
    modulePass===modules.length &&
    assetPass===assets.length;
@@ -139,6 +155,7 @@ function run(open){
    duplicateIds:dups.length,
    duplicateIdList:dups,
    badJumpTargets:jumps,
+   commandCenterActions:richActions,
    modules:modules,
    assets:assets,
    errors:runtimeErrors.slice(),
