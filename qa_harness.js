@@ -115,14 +115,16 @@ function checkModules(){
   ["Project Launchpad",!!window.CloudOdysseyProjectLaunchpad],
   ["Artifact verifier API client",!!(window.CloudOdysseyBackend&&window.CloudOdysseyBackend.verifyArtifact)],
   ["Product Roadmap",!!window.CloudOdysseyProductRoadmap],
-  ["Account & Sync",!!window.CloudOdysseyAccountSync]
+  ["Account & Sync",!!window.CloudOdysseyAccountSync],
+  ["Delta Performance",!!window.CloudOdysseyDeltaMastery],
+  ["Skills Matrix Practice",!!window.CloudOdysseySkillPractice]
  ];
  return expected;
 }
 function checkAssets(){
  var required=[
   "app.js","enterprise.js","reasoning.js","communications.js","speaking.js","elite.js",
-  "coding_forge.js","adaptive_ladder.js","cloud_forge.js","ultra_ui.js","qa_harness.js","action_map.js","backend_client.js","backend_console.js","backend_forge.js","graduation_gate.js","sardine_data.js","sardine_forge.js","project_launchpad.js","account_sync.js","product_roadmap.js"
+  "coding_forge.js","adaptive_ladder.js","cloud_forge.js","ultra_ui.js","qa_harness.js","action_map.js","backend_client.js","backend_console.js","backend_forge.js","graduation_gate.js","sardine_data.js","sardine_forge.js","project_launchpad.js","account_sync.js","product_roadmap.js","delta_mastery.js","skills_practice.js"
  ];
  var loaded=$$("script[src]").map(function(s){return (s.getAttribute("src")||"").split("/").pop();});
  return required.map(function(x){return {asset:x,ok:loaded.indexOf(x)>=0};});
