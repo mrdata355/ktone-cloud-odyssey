@@ -89,3 +89,70 @@
 .pl-defense-actions span{font-size:8px;color:#84a0b5}
 .pl-accept input:disabled{opacity:1}
 .pl-accept input:disabled+span{color:#9db2c3}
+
+
+/* Mobile modal stability: one scroll surface, no nested project-grid scrolling. */
+@media(max-width:760px){
+  #modal{
+    box-sizing:border-box;
+    place-items:stretch center;
+    padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));
+  }
+  #modal .modal-card{
+    box-sizing:border-box;
+    width:100%;
+    max-width:none;
+    height:100%;
+    max-height:calc(100dvh - max(20px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    margin:0;
+    padding:18px 14px 14px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  #modal .modal-close{
+    position:absolute;
+    top:14px;
+    right:14px;
+    float:none;
+    z-index:8;
+    width:42px;
+    height:42px;
+    flex:0 0 auto;
+  }
+  #modalContent{
+    box-sizing:border-box;
+    flex:1 1 auto;
+    min-height:0;
+    max-height:none;
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-y:contain;
+    padding:4px 2px 34px 0;
+    scrollbar-gutter:stable;
+  }
+  #modalContent>h2:first-of-type,
+  #modalContent>.micro:first-child{
+    padding-right:52px;
+  }
+  .pl-intro{
+    margin:10px 0 14px;
+  }
+  .pl-project-grid{
+    grid-template-columns:1fr;
+    max-height:none;
+    overflow:visible;
+    padding-right:0;
+    gap:12px;
+  }
+  .pl-project-card{
+    min-width:0;
+    width:auto;
+    overflow:visible;
+  }
+  .pl-project-card button{
+    position:static;
+    min-height:48px;
+  }
+}
