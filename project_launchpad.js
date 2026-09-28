@@ -127,32 +127,69 @@ function picker(kind){
  s.projects.map(function(p,i){
    var rec=history[kind+"-"+i],status=projectStatus(rec),score=rec&&rec.exerciseScore!=null?(" • code "+rec.exerciseScore+"%"):"",def=rec&&rec.defenseScore!=null?(" • defense "+rec.defenseScore+"%"):"";
    var label=rec?(rec.completed?"Review completed project →":"Resume work order →"):"Launch work order →";
-   return '<article class="pl-project-card '+(rec&&rec.completed?"complete":"")+'"><div class="pl-card-status"><span>'+esc(p.tag)+'</span><strong>'+status+score+def+'</strong></div><h3>'+esc(p.title)+'</h3><p>'+esc(p.scenario)+'</p><div class="pl-mini"><b>OBJECTIVE</b><p>'+esc(p.objective)+'</p></div><button data-pl-launch="'+kind+':'+i+'">'+label+'</button></article>';
+   return '<article class="pl-project-card '+(rec&&rec.completed?"complete":"")+'"><div class="pl-card-status"><span>'+esc(p.tag)+'</span><strong>'+status+score+def+'</strong></div><h3>'+esc(p.title)+'</h3><p>'+esc(p.scenario)+'</p><div class="pl-mini"><b>OBJECTIVE</b><p>'+esc(p.objective)+'</p></div><button type="button" data-pl-launch="'+kind+':'+i+'">'+label+'</button></article>';
  }).join("")+'</div>';
  var modal=$("#modal"),content=$("#modalContent");if(!modal||!content)return;
  content.innerHTML='<span class="micro">'+esc(s.kicker)+'</span><h2>'+esc(s.label)+' Projects</h2>'+body;
  modal.classList.remove("hidden");
  content.scrollTop=0;var pg=$(".pl-project-grid",content);if(pg)pg.scrollTop=0;
- $$("[data-pl-launch]",content).forEach(function(b){b.onclick=function(){var x=b.dataset.plLaunch.split(":");launch(x[0],+x[1]);};});
 }
-function launch(kind,index){
- var s=streams[kind],p=s&&s.projects[index];if(!p)return;
- var id=kind+"-"+index,history=getHistory(),prev=history[id]||null,a=p.launch||{};
- var work=Object.assign({id:id,kind:kind,index:index,title:p.title,tag:p.tag,scenario:p.scenario,objective:p.objective,files:p.files,accept:p.accept,done:{},artifacts:{},view:s.view,startedAt:Date.now(),launch:a,exerciseScore:null,exercisePassed:false,defenseScore:null,defensePassed:false,completed:false},prev||{});
- work.id=id;work.kind=kind;work.index=index;work.title=p.title;work.tag=p.tag;work.scenario=p.scenario;work.objective=p.objective;work.files=p.files;work.accept=p.accept;work.view=s.view;work.launch=a;
- saveWork(work);closeModal();
+function activateDestination(view){
+ if(!view)return false;
+ if(window.CloudOdysseyUI&&window.CloudOdysseyUI.activate){
+   try{return window.CloudOdysseyUI.activate(view,{instant:true})!==false;}catch(e){}
+ }
+ try{
+   CO.setView(view);
+   document.dispatchEvent(new CustomEvent("odyssey:viewchange",{detail:{view:view}}));
+   return !!$("#view-"+view);
+ }catch(e){return false;}
+}
+function destinationActive(view){
+ var v=$("#view-"+view);
+ return !!(v&&v.classList.contains("active"));
+}
+function routeWork(s,a){
+ var target=s&&s.view;
+ activateDestination(target);
  if(a.kind==="match"&&window.CloudOdysseyCodingForge&&window.CloudOdysseyCodingForge.launchMatch)window.CloudOdysseyCodingForge.launchMatch(a.category);
  else if(a.kind==="coding"&&window.CloudOdysseyCodingForge&&window.CloudOdysseyCodingForge.launchChallenge)window.CloudOdysseyCodingForge.launchChallenge(a.index,a.mode);
  else if(a.kind==="star"&&window.CloudOdysseySpeaking&&window.CloudOdysseySpeaking.launchStar)window.CloudOdysseySpeaking.launchStar(a.index);
- else if(a.kind==="incident"&&CO.launchIncident)CO.launchIncident(a.index);
+ else if(a.kind==="incident"&&CO.launchIncident)CO.launchIncident(Number(a.index)||0);
  else if(a.kind==="cloud"&&window.CloudOdysseyCloudForge&&window.CloudOdysseyCloudForge.launch)window.CloudOdysseyCloudForge.launch(a.provider,a.projectId);
  else if(a.kind==="explain"){
-   CO.openMission(a.w,a.m);
+   if(CO.openMission)CO.openMission(Number(a.w)||0,Number(a.m)||0);
    if(window.CloudOdysseyComms&&window.CloudOdysseyComms.launch)window.CloudOdysseyComms.launch({audience:a.audience,context:"active",tab:"talk"});
+   else activateDestination(target);
  }
- else if(window.CloudOdysseyUI)window.CloudOdysseyUI.activate(s.view);
- setTimeout(function(){renderWorkOrder(true);},30);
+ else activateDestination(target);
+ setTimeout(function(){if(!destinationActive(target))activateDestination(target);},120);
+ return target;
 }
+function launch(kind,index){
+ var s=streams[kind],p=s&&s.projects[index];if(!p){CO.toast("Project unavailable");return;}
+ var id=kind+"-"+index,history=getHistory(),prev=history[id]||null,a=p.launch||{};
+ var work=Object.assign({id:id,kind:kind,index:index,title:p.title,tag:p.tag,scenario:p.scenario,objective:p.objective,files:p.files,accept:p.accept,done:{},artifacts:{},view:s.view,startedAt:Date.now(),launch:a,exerciseScore:null,exercisePassed:false,defenseScore:null,defensePassed:false,completed:false},prev||{});
+ work.id=id;work.kind=kind;work.index=index;work.title=p.title;work.tag=p.tag;work.scenario=p.scenario;work.objective=p.objective;work.files=p.files;work.accept=p.accept;work.view=s.view;work.launch=a;
+ closeModal();
+ var target;
+ try{target=routeWork(s,a);}catch(e){activateDestination(s.view);target=s.view;}
+ try{saveWork(work);}catch(e){try{localStorage.setItem(KEY,JSON.stringify(work));}catch(ignore){}}
+ CO.toast("Started: "+p.title);
+ document.dispatchEvent(new CustomEvent("odyssey:project-start",{detail:{id:id,kind:kind,index:index,title:p.title,view:target,launch:a}}));
+ setTimeout(function(){if(!destinationActive(target))activateDestination(target);renderWorkOrder(true);},180);
+ setTimeout(function(){if(destinationActive(target))renderWorkOrder(false);},650);
+}
+D.addEventListener("click",function(e){
+ var b=e.target&&e.target.closest?e.target.closest("[data-pl-launch]"):null;
+ if(!b)return;
+ e.preventDefault();e.stopPropagation();
+ if(b.dataset.plLaunching==="1")return;
+ b.dataset.plLaunching="1";b.disabled=true;b.textContent="Starting project…";
+ var x=String(b.dataset.plLaunch||"").split(":");
+ setTimeout(function(){launch(x[0],Number(x[1]));},0);
+ setTimeout(function(){b.disabled=false;b.dataset.plLaunching="";},1200);
+},true);
 function artifactHint(path){
  var p=String(path||"").toLowerCase();
  if(/runbook|incident/.test(p))return "Recovery/operating procedure: detection, evidence, bounded recovery, validation and rollback.";
